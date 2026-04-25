@@ -69,8 +69,8 @@ export default function SidebarFilters() {
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-[11px] font-black text-text uppercase tracking-widest">{format(currentMonth, "MMMM yyyy", { locale: ptBR })}</h4>
           <div className="flex gap-1">
-            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1 hover:bg-muted/10 rounded-md transition-colors text-muted hover:text-text"><ChevronLeft className="w-4 h-4" /></button>
-            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-muted/10 rounded-md transition-colors text-muted hover:text-text"><ChevronRight className="w-4 h-4" /></button>
+            <button aria-label="Mês anterior" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1 hover:bg-muted/10 rounded-md transition-colors text-muted hover:text-text"><ChevronLeft className="w-4 h-4" /></button>
+            <button aria-label="Próximo mês" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-muted/10 rounded-md transition-colors text-muted hover:text-text"><ChevronRight className="w-4 h-4" /></button>
           </div>
         </div>
         <div className="grid grid-cols-7 gap-y-2 text-center">
