@@ -165,7 +165,7 @@ export default function ViagemModal({ isOpen, onClose, itemToEdit, onSaved }: Vi
                         <span className="text-xs font-bold text-text truncate">{file.nome}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a href={file.url} target="_blank" rel="noreferrer" className="p-2 text-accent hover:bg-accent/10 rounded-xl transition-all"><LinkIcon className="w-4 h-4"/></a>
+                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="p-2 text-accent hover:bg-accent/10 rounded-xl transition-all"><LinkIcon className="w-4 h-4"/></a>
                         <button onClick={() => removeFile(file.url)} className="p-2 text-red/60 hover:text-red hover:bg-red/10 rounded-xl transition-all"><Trash2 className="w-4 h-4"/></button>
                       </div>
                     </div>
