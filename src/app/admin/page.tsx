@@ -153,6 +153,12 @@ export default function AdminDashboard() {
   const [addUserError, setAddUserError] = useState("");
   const [deleteUserLoading, setDeleteUserLoading] = useState<string | null>(null);
 
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+  const [editUserNome, setEditUserNome] = useState("");
+  const [editUserLoading, setEditUserLoading] = useState(false);
+  const [editUserError, setEditUserError] = useState("");
+
   useEffect(() => {
     fetchEvents();
     fetchInventory(); // For Dashboard metrics
@@ -245,6 +251,26 @@ export default function AdminDashboard() {
       }
     }
     setAddUserLoading(false);
+  };
+
+  const handleEditUser = async () => {
+    setEditUserError("");
+    if (!editUserNome.trim()) {
+      setEditUserError("O nome não pode ficar vazio.");
+      return;
+    }
+    setEditUserLoading(true);
+    try {
+      if (editingUser) {
+        await updateDoc(doc(getFirebaseDb(), "users", editingUser.id), { nome: editUserNome.trim() });
+        setEditUserModalOpen(false);
+        fetchAllUsers();
+      }
+    } catch(e) {
+      setEditUserError("Erro ao atualizar usuário.");
+      console.error(e);
+    }
+    setEditUserLoading(false);
   };
 
   const filteredGeneral = inventario.filter(i => 
@@ -1628,6 +1654,16 @@ export default function AdminDashboard() {
                                         </button>
                                       )}
                                       <button 
+                                        onClick={() => {
+                                          setEditingUser(usr);
+                                          setEditUserNome(usr.nome || "");
+                                          setEditUserModalOpen(true);
+                                        }} 
+                                        className="p-1.5 bg-surface border border-white/5 rounded text-muted hover:text-accent hover:border-accent/20 hover:bg-accent/5 transition-all"
+                                      >
+                                        <Edit2 className="w-4 h-4"/>
+                                      </button>
+                                      <button 
                                         onClick={() => deleteUserDoc(usr.id)} 
                                         disabled={deleteUserLoading === usr.id}
                                         className="p-1.5 bg-surface border border-white/5 rounded text-muted hover:text-red hover:border-red/20 hover:bg-red/5 transition-all disabled:opacity-50"
@@ -1717,6 +1753,63 @@ export default function AdminDashboard() {
                     >
                       {addUserLoading && <Loader2 className="w-4 h-4 animate-spin"/>}
                       {addUserLoading ? 'Criando...' : 'Criar Usuário'}
+                    </button>
+                  </div>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit User Modal */}
+        {editUserModalOpen && editingUser && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-surface border border-white/10 w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+               <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/5">
+                  <h3 className="text-lg font-medium text-text flex items-center gap-2"><Edit2 className="w-5 h-5 text-accent"/> Editar Usuário</h3>
+                  <button onClick={() => setEditUserModalOpen(false)} className="text-muted hover:text-text transition-colors"><X className="w-5 h-5"/></button>
+               </div>
+               <div className="p-5 flex flex-col gap-4">
+                  <div>
+                    <label className="text-xs font-mono text-muted uppercase tracking-wider mb-1.5 block">Nome completo</label>
+                    <input 
+                      type="text" 
+                      value={editUserNome} 
+                      onChange={e => setEditUserNome(e.target.value)} 
+                      placeholder="Nome do colaborador" 
+                      className="w-full bg-bg/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-mono text-muted uppercase tracking-wider mb-1.5 block">E-mail</label>
+                    <input 
+                      type="email" 
+                      value={editingUser.email} 
+                      disabled
+                      className="w-full bg-bg/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm font-medium text-muted outline-none cursor-not-allowed opacity-70"
+                    />
+                    <p className="text-[10px] text-muted mt-1 font-mono uppercase">O e-mail não pode ser alterado.</p>
+                  </div>
+
+                  {editUserError && (
+                    <div className="bg-red/10 border border-red/20 rounded-lg p-3">
+                      <p className="text-red text-sm font-medium">{editUserError}</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 mt-2">
+                    <button 
+                      onClick={() => setEditUserModalOpen(false)} 
+                      className="flex-1 bg-surface border border-white/10 text-muted font-medium py-2.5 rounded-lg text-sm hover:text-text hover:border-white/20 transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      onClick={handleEditUser} 
+                      disabled={editUserLoading}
+                      className="flex-1 bg-accent text-white font-medium py-2.5 rounded-lg text-sm hover:bg-accent/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {editUserLoading && <Loader2 className="w-4 h-4 animate-spin"/>}
+                      {editUserLoading ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
                   </div>
                </div>
