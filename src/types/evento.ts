@@ -26,7 +26,25 @@ export interface TriplaEvent {
   cidade?: string;
   conteudo?: string;
   materiais?: string;
-  brinde?: string;
+  
+  // Financeiro Novo
+  uf?: string;
+  tipo_financeiro?: 'Happy Hour' | 'Segmento' | 'Regional' | 'Nacional' | string;
+  apuracao_finalizada?: boolean;
+  custo_real?: number | string;
+  previsao_pipe?: number | string;
+  previsao_fechamento?: number | string;
+  receita_estimada?: number | string;
+
+  // Financeiro Legado
+  orcamento_total?: number | string;
+  custo_brindes?: number | string;
+  custo_uniformes?: number | string;
+  custo_ingressos?: number | string;
+  custo_passagens?: number | string;
+  custo_hospedagem?: number | string;
+  custo_outros?: number | string;
+  outros_custos_lista?: { id: string; nome: string; descricao: string; valor: number | string }[];
 
   // Vagas
   vagas_staff?: number;

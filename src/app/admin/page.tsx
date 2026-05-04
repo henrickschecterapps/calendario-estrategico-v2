@@ -23,6 +23,7 @@ import {
   Plus,
   Trash2,
   Edit2,
+  Eye,
   Flag,
   User,
   Star,
@@ -39,7 +40,8 @@ import {
   BarChart3,
   X,
   UserPlus,
-  Loader2
+  Loader2,
+  DollarSign
 } from "lucide-react";
 import { 
   Chart as ChartJS, 
@@ -77,10 +79,13 @@ import EventFormModal from "@/components/EventFormModal";
 import PedidoModal from "@/components/PedidoModal";
 import KanbanBoard from "@/components/KanbanBoard";
 import EventModal from "@/components/EventModal";
+import FinanceiroModal from "@/components/FinanceiroModal";
 import { formatToBRDate } from "@/lib/dateUtils";
 import { useTheme } from "@/store/useTheme";
 import { cn } from "@/lib/utils";
 import { genericConverter } from "@/lib/firebaseUtils";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import { 
   InventoryItem, 
   Fornecedor, 
@@ -92,13 +97,69 @@ import {
 } from "@/types/collections";
 import { TriplaEvent } from "@/types/evento";
 
-type AdminTab = 'Dashboard' | 'Eventos' | 'Operacional' | 'Relatórios' | 'Usuarios' | 'Configuracoes';
+const parseBRValue = (val: any): number => {
+  if (typeof val === 'number') return val;
+  if (!val || typeof val !== 'string') return 0;
+  const clean = val.replace(/\./g, '').replace(',', '.');
+  return parseFloat(clean) || 0;
+};
+
+type AdminTab = 'Dashboard' | 'Eventos' | 'Operacional' | 'Relatórios' | 'Financeiro' | 'Usuarios' | 'Configuracoes';
 type OperationalTab = 'Visão Geral' | 'Estoque' | 'Pedidos de Compra' | 'Fornecedores' | 'Viagens' | 'Participantes';
 
 export default function AdminDashboard() {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { events, fetchEvents } = useEvents(); 
+  const { events, fetchEvents, setSelectedEvent } = useEvents(); 
+
+  const exportFinanceiroPDF = () => {
+    const doc = new jsPDF('landscape');
+    const financeiroEvents = events.filter(e => e.tipo !== 'Feriado');
+    
+    doc.setFontSize(18);
+    doc.text("Gestão Financeira - Tripla Eventos", 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+
+    const c_real_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.custo_real), 0);
+    const p_pipe_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_pipe), 0);
+    const p_fech_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_fechamento), 0);
+    const r_est_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.receita_estimada), 0);
+
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Custo Real Total: R$ ${c_real_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 14, 38);
+    doc.text(`Prev. Pipe Total: R$ ${p_pipe_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 90, 38);
+    doc.text(`Prev. Fech. Total: R$ ${p_fech_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 160, 38);
+    doc.text(`Receita Est. Total: R$ ${r_est_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 230, 38);
+
+    const tableColumn = ["Evento", "Data", "UF", "Tipo", "Apurado", "Custo Real", "Pipe", "Fech.", "Receita"];
+    const tableRows = financeiroEvents.map(evt => [
+      evt.evento,
+      formatToBRDate(evt.data_ini),
+      evt.uf || '-',
+      evt.tipo_financeiro || '-',
+      evt.apuracao_finalizada ? "Sim" : "Não",
+      `R$ ${parseBRValue(evt.custo_real).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      `R$ ${parseBRValue(evt.previsao_pipe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      `R$ ${parseBRValue(evt.previsao_fechamento).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      `R$ ${parseBRValue(evt.receita_estimada).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+    ]);
+
+    (doc as any).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 45,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] }
+    });
+
+    doc.save(`financeiro_tripla_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
 
 
   const [activeTab, setActiveTab] = useState<AdminTab>('Dashboard');
@@ -127,6 +188,9 @@ export default function AdminDashboard() {
 
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TriplaEvent | null>(null);
+
+  const [financeiroModalOpen, setFinanceiroModalOpen] = useState(false);
+  const [editingFinanceiroEvent, setEditingFinanceiroEvent] = useState<TriplaEvent | null>(null);
 
   // Vagas Modal
   const [vagasModalOpen, setVagasModalOpen] = useState(false);
@@ -546,8 +610,7 @@ export default function AdminDashboard() {
 
   const totalBrindes = brindesData.length;
   const custoTotalBrindes = brindesData.reduce((acc, b) => {
-    const p = typeof b.preco === 'string' ? parseFloat(b.preco.replace(',', '.')) : (Number(b.preco) || 0);
-    return acc + (p * (b.quantidade || 0));
+    return acc + (parseBRValue(b.preco) * (b.quantidade || 0));
   }, 0);
   const totalBrindesVip = brindesData.filter(b => b.vip || b.descricao?.toLowerCase().includes('vip')).length;
 
@@ -555,8 +618,7 @@ export default function AdminDashboard() {
   const totalUniformesPedidos = uniformesData.filter(u => u.status?.toUpperCase().includes('PEDIDO')).length;
   const qtdTotalUniformes = uniformesData.reduce((acc, u) => acc + (u.quantidade || 0), 0);
   const custoTotalUniformes = uniformesData.reduce((acc, u) => {
-    const p = typeof u.preco === 'string' ? parseFloat(u.preco.replace(',', '.')) : (Number(u.preco) || 0);
-    return acc + (p * (u.quantidade || 0));
+    return acc + (parseBRValue(u.preco) * (u.quantidade || 0));
   }, 0);
   const totalUniformesEntregues = uniformesData.filter(u => u.status?.toUpperCase().includes('ENTREGUE')).length;
 
@@ -607,7 +669,7 @@ export default function AdminDashboard() {
                return (
                  <div key={dayIdx} className={cn("w-5 h-5 rounded-sm transition-all hover:scale-125 cursor-help", bg)} title={`${val} evento(s)`}></div>
                );
-             })}
+            })}
           </div>
         ))}
       </div>
@@ -626,6 +688,19 @@ export default function AdminDashboard() {
       <ViagemModal isOpen={viagemModalOpen} onClose={() => setViagemModalOpen(false)} itemToEdit={editingViagem} onSaved={fetchViagens} />
       <ParticipanteModal isOpen={participanteModalOpen} onClose={() => setParticipanteModalOpen(false)} itemToEdit={editingParticipante} onSaved={fetchParticipantes} />
       <EventFormModal isOpen={eventModalOpen} onClose={() => setEventModalOpen(false)} eventToEdit={editingEvent} onSaved={fetchEvents} />
+      <FinanceiroModal 
+        isOpen={financeiroModalOpen} 
+        onClose={() => setFinanceiroModalOpen(false)} 
+        eventToEdit={editingFinanceiroEvent} 
+        onSaved={fetchEvents} 
+        onViewEvent={() => {
+          if (editingFinanceiroEvent) {
+            setFinanceiroModalOpen(false);
+            setSelectedEvent(editingFinanceiroEvent);
+          }
+        }}
+      />
+      <EventModal />
       
       {/* Vagas Modal */}
       {vagasModalOpen && (
@@ -700,7 +775,7 @@ export default function AdminDashboard() {
               { id: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5"/>, label: 'Resumo' },
               { id: 'Eventos', icon: <Calendar className="w-5 h-5"/>, label: 'Eventos' },
               { id: 'Operacional', icon: <Box className="w-5 h-5"/>, label: 'Operacional' },
-              { id: 'Relatórios', icon: <PieChart className="w-5 h-5"/>, label: 'Analytics' },
+              { id: 'Financeiro', icon: <DollarSign className="w-5 h-5"/>, label: 'Financeiro' },
               { id: 'Usuarios', icon: <Users className="w-5 h-5"/>, label: 'Usuários' },
               { id: 'Configuracoes', icon: <Settings className="w-5 h-5"/>, label: 'Config' }
             ].map((tab) => (
@@ -1816,6 +1891,192 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* ======================= FINANCEIRO TAB ======================= */}
+        {activeTab === 'Financeiro' && (() => {
+           const financeiroEvents = events.filter(e => e.tipo !== 'Feriado');
+           const now = new Date();
+           const cMonth = now.getMonth();
+           const cYear = now.getFullYear();
+
+           const nesteMes = financeiroEvents.filter(e => {
+             if(!e.data_ini) return false;
+             const d = new Date(e.data_ini);
+             return d.getMonth() === cMonth && d.getFullYear() === cYear;
+           }).sort((a,b) => new Date(a.data_ini!).getTime() - new Date(b.data_ini!).getTime());
+
+           const futuros = financeiroEvents.filter(e => {
+             if(!e.data_ini) return false;
+             const d = new Date(e.data_ini);
+             return d.getFullYear() > cYear || (d.getFullYear() === cYear && d.getMonth() > cMonth);
+           }).sort((a,b) => new Date(a.data_ini!).getTime() - new Date(b.data_ini!).getTime());
+
+           const passados = financeiroEvents.filter(e => {
+             if(!e.data_ini) return true;
+             const d = new Date(e.data_ini);
+             return d.getFullYear() < cYear || (d.getFullYear() === cYear && d.getMonth() < cMonth);
+           }).sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime());
+
+           const renderRow = (evt: TriplaEvent) => {
+              const c_real = parseBRValue(evt.custo_real);
+              const p_pipe = parseBRValue(evt.previsao_pipe);
+              const p_fech = parseBRValue(evt.previsao_fechamento);
+              const r_est = parseBRValue(evt.receita_estimada);
+              return (
+                <tr 
+                  key={evt.id} 
+                  className="hover:bg-white/5 transition-colors group cursor-pointer"
+                  onClick={() => { setEditingFinanceiroEvent(evt); setFinanceiroModalOpen(true); }}
+                >
+                   <td className="px-4 py-3 font-medium text-text group-hover:text-accent transition-colors">
+                      {evt.evento}
+                   </td>
+                   <td className="px-4 py-3 text-muted font-mono">{formatToBRDate(evt.data_ini)}</td>
+                   <td className="px-4 py-3 text-muted uppercase">{evt.uf || '-'}</td>
+                   <td className="px-4 py-3 text-center">
+                      {evt.tipo_financeiro ? (
+                         <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 text-muted border border-white/10">
+                           {evt.tipo_financeiro}
+                         </span>
+                      ) : <span className="text-muted/50">-</span>}
+                   </td>
+                   <td className="px-4 py-3 text-center">
+                     {evt.apuracao_finalizada ? (
+                       <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green/10 text-green border border-green/20">Sim</span>
+                     ) : (
+                       <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red/10 text-red border border-red/20">Não</span>
+                     )}
+                   </td>
+                   <td className="px-4 py-3 text-right font-mono">
+                     R$ {c_real.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   </td>
+                   <td className="px-4 py-3 text-right font-mono text-muted">
+                     R$ {p_pipe.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   </td>
+                   <td className="px-4 py-3 text-right font-mono text-purple">
+                     R$ {p_fech.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   </td>
+                   <td className="px-4 py-3 text-right font-mono text-green font-medium">
+                     R$ {r_est.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   </td>
+                   <td className="px-4 py-3 text-center print:hidden">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedEvent(evt); }}
+                          className="p-1.5 text-muted hover:text-accent hover:bg-accent/10 rounded-md transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider border border-transparent hover:border-accent/20"
+                          title="Ver Evento"
+                        >
+                           <Eye className="w-4 h-4" /> Ver
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setEditingFinanceiroEvent(evt); setFinanceiroModalOpen(true); }}
+                          className="p-1.5 text-muted hover:text-accent hover:bg-accent/10 rounded-md transition-all"
+                          title="Editar Financeiro"
+                        >
+                           <Edit2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                   </td>
+                </tr>
+              );
+           };
+
+           return (
+          <div className="w-full space-y-6 animate-in fade-in duration-300">
+             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
+               <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-medium text-text flex items-center gap-3 tracking-tight">
+                    <DollarSign className="w-6 h-6 text-accent"/> Gestão Financeira
+                  </h2>
+               </div>
+               
+               <button onClick={exportFinanceiroPDF} className="text-sm font-medium text-muted hover:text-text flex items-center gap-1.5 transition-colors print:hidden bg-surface border border-white/10 px-4 py-2 rounded-lg">
+                 <Download className="w-4 h-4"/> Exportar PDF
+               </button>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Custo Real Total', val: financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.custo_real), 0), icon: <TrendingUp className="w-5 h-5"/>, color: 'text-accent' },
+                  { label: 'Previsão de Pipe (x200)', val: financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_pipe), 0), icon: <BarChart3 className="w-5 h-5"/>, color: 'text-text' },
+                  { label: 'Prev. Fechamento 15%', val: financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_fechamento), 0), icon: <PieChart className="w-5 h-5"/>, color: 'text-purple' },
+                  { label: 'Receita Líquida Estimada', val: financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.receita_estimada), 0), icon: <DollarSign className="w-5 h-5"/>, color: 'text-green' }
+                ].map((m, i) => (
+                  <div key={i} className="bg-surface/40 border border-white/5 rounded-xl p-5 flex flex-col print:bg-white print:border-gray-200">
+                     <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-mono text-muted uppercase tracking-widest">{m.label}</span>
+                        <div className={m.color}>{m.icon}</div>
+                     </div>
+                     <div className={`text-3xl font-medium ${m.color} tracking-tight font-mono`}>
+                       <span className="text-lg opacity-50 mr-1">R$</span>
+                       {m.val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                     </div>
+                  </div>
+                ))}
+             </div>
+
+             <div className="bg-surface border border-white/5 rounded-xl overflow-hidden mt-6 print:border-gray-200 print:shadow-none">
+                 <div className="overflow-x-auto">
+                   <table className="w-full text-sm text-left print:text-xs">
+                      <thead className="bg-white/5 text-muted uppercase font-mono text-xs tracking-widest print:bg-gray-100 print:text-gray-600">
+                         <tr>
+                             <th className="px-4 py-3">Evento</th>
+                             <th className="px-4 py-3">Data</th>
+                             <th className="px-4 py-3">UF</th>
+                             <th className="px-4 py-3 text-center">Tipo Financeiro</th>
+                             <th className="px-4 py-3 text-center">Apuração Finalizada?</th>
+                             <th className="px-4 py-3 text-right">Custo Real (R$)</th>
+                             <th className="px-4 py-3 text-right">Prev. Pipe (R$)</th>
+                             <th className="px-4 py-3 text-right">Prev. Fech. (R$)</th>
+                             <th className="px-4 py-3 text-right">Receita Est. (R$)</th>
+                             <th className="px-4 py-3 text-center print:hidden">Ação</th>
+                         </tr>
+                      </thead>
+                      {(() => {
+                        return (
+                          <>
+                            {nesteMes.length > 0 && (
+                              <tbody className="divide-y divide-white/5 print:divide-gray-200">
+                                <tr>
+                                  <td colSpan={10} className="bg-accent/10 text-accent px-4 py-2 font-bold uppercase text-xs tracking-widest print:bg-gray-100">Neste Mês</td>
+                                </tr>
+                                {nesteMes.map(renderRow)}
+                              </tbody>
+                            )}
+                            {futuros.length > 0 && (
+                              <tbody className="divide-y divide-white/5 border-t-4 border-bg print:border-gray-200 print:divide-gray-200">
+                                <tr>
+                                  <td colSpan={10} className="bg-blue-500/10 text-blue-400 px-4 py-2 font-bold uppercase text-xs tracking-widest print:bg-gray-100">Eventos Futuros</td>
+                                </tr>
+                                {futuros.map(renderRow)}
+                              </tbody>
+                            )}
+                            {passados.length > 0 && (
+                              <tbody className="divide-y divide-white/5 border-t-4 border-bg print:border-gray-200 print:divide-gray-200">
+                                <tr>
+                                  <td colSpan={10} className="bg-white/5 text-muted px-4 py-2 font-bold uppercase text-xs tracking-widest print:bg-gray-100">Eventos Passados</td>
+                                </tr>
+                                {passados.map(renderRow)}
+                              </tbody>
+                            )}
+                            {financeiroEvents.length === 0 && (
+                              <tbody>
+                                 <tr>
+                                    <td colSpan={10} className="px-4 py-8 text-center text-muted font-mono uppercase tracking-widest text-sm">
+                                       Nenhum evento encontrado
+                                    </td>
+                                 </tr>
+                              </tbody>
+                            )}
+                          </>
+                        );
+                      })()}
+                   </table>
+                 </div>
+             </div>
+          </div>
+           );
+        })()}
 
         {/* ======================= CONFIGURACOES TAB ======================= */}
         {activeTab === 'Configuracoes' && (
