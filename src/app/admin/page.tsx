@@ -205,6 +205,9 @@ export default function AdminDashboard() {
   const [organizadores, setOrganizadores] = useState<Organizador[]>([]);
   const [novoOrgName, setNovoOrgName] = useState("");
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({ almoxarifado: '', brindes: '', uniformes: '', fornecedores: '', viagens: '', participantes: '', usuarios: '' });
+  const [financeiroSearch, setFinanceiroSearch] = useState("");
+  const [financeiroType, setFinanceiroType] = useState("all");
+  const [financeiroStatus, setFinanceiroStatus] = useState("all");
   const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'brinde' | 'uniforme' } | null>(null);
 
   // Usuários Management State
@@ -1894,7 +1897,32 @@ export default function AdminDashboard() {
 
         {/* ======================= FINANCEIRO TAB ======================= */}
         {activeTab === 'Financeiro' && (() => {
-           const financeiroEvents = events.filter(e => e.tipo !== 'Feriado');
+           const financeiroEvents = events.filter(e => {
+             if (e.tipo === 'Feriado') return false;
+             
+             // Search Filter
+             if (financeiroSearch) {
+               const searchLower = financeiroSearch.toLowerCase();
+               const matchesSearch = e.evento?.toLowerCase().includes(searchLower) || 
+                                   e.uf?.toLowerCase().includes(searchLower);
+               if (!matchesSearch) return false;
+             }
+             
+             // Type Filter
+             if (financeiroType !== 'all' && e.tipo_financeiro !== financeiroType) {
+               return false;
+             }
+             
+             // Status Filter
+             if (financeiroStatus !== 'all') {
+               const isFinished = !!e.apuracao_finalizada;
+               if (financeiroStatus === 'finished' && !isFinished) return false;
+               if (financeiroStatus === 'pending' && isFinished) return false;
+             }
+             
+             return true;
+           });
+
            const now = new Date();
            const cMonth = now.getMonth();
            const cYear = now.getFullYear();
@@ -1993,6 +2021,57 @@ export default function AdminDashboard() {
                <button onClick={exportFinanceiroPDF} className="text-sm font-medium text-muted hover:text-text flex items-center gap-1.5 transition-colors print:hidden bg-surface border border-white/10 px-4 py-2 rounded-lg">
                  <Download className="w-4 h-4"/> Exportar PDF
                </button>
+             </div>
+
+             {/* FILTERS BAR */}
+             <div className="bg-surface/60 border border-white/5 rounded-xl p-4 flex flex-wrap items-center gap-4 print:hidden">
+                <div className="flex-1 min-w-[200px] relative">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"/>
+                   <input 
+                     type="text"
+                     placeholder="Buscar por evento ou UF..."
+                     value={financeiroSearch}
+                     onChange={(e) => setFinanceiroSearch(e.target.value)}
+                     className="w-full bg-bg border border-white/10 rounded-lg py-2 pl-10 pr-4 text-sm outline-none focus:border-accent transition-all"
+                   />
+                </div>
+
+                <div className="flex items-center gap-2">
+                   <span className="text-xs font-bold text-muted uppercase tracking-wider">Tipo:</span>
+                   <select 
+                     value={financeiroType}
+                     onChange={(e) => setFinanceiroType(e.target.value)}
+                     className="bg-bg border border-white/10 rounded-lg py-2 px-3 text-sm outline-none focus:border-accent transition-all"
+                   >
+                     <option value="all">Todos</option>
+                     <option value="Happy Hour">Happy Hour</option>
+                     <option value="Segmento">Segmento</option>
+                     <option value="Regional">Regional</option>
+                     <option value="Nacional">Nacional</option>
+                   </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                   <span className="text-xs font-bold text-muted uppercase tracking-wider">Status:</span>
+                   <select 
+                     value={financeiroStatus}
+                     onChange={(e) => setFinanceiroStatus(e.target.value)}
+                     className="bg-bg border border-white/10 rounded-lg py-2 px-3 text-sm outline-none focus:border-accent transition-all"
+                   >
+                     <option value="all">Status (Todos)</option>
+                     <option value="finished">Apuração Finalizada</option>
+                     <option value="pending">Apuração Pendente</option>
+                   </select>
+                </div>
+
+                {(financeiroSearch || financeiroType !== 'all' || financeiroStatus !== 'all') && (
+                   <button 
+                     onClick={() => { setFinanceiroSearch(""); setFinanceiroType("all"); setFinanceiroStatus("all"); }}
+                     className="text-xs font-bold text-accent hover:text-accent-hover flex items-center gap-1 uppercase tracking-widest transition-colors ml-auto"
+                   >
+                     <X className="w-3.5 h-3.5"/> Limpar Filtros
+                   </button>
+                )}
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
