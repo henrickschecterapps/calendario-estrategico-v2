@@ -160,6 +160,9 @@ export interface BrindeAlocado {
   docId?: string;
   item: string;
   qtd: number;
+  qtd_consumida?: number;
+  qtd_retornada?: number;
+  baixa_confirmada?: boolean;
 }
 
 // ─── EventFormData (formulário de criação/edição) ────────────
