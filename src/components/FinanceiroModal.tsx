@@ -4,6 +4,7 @@ import { InventoryItem, Viagem } from "@/types/collections";
 import { getFirebaseDb } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { X, Save, DollarSign, Loader2, Edit2, Eye, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FinanceiroModalProps {
   isOpen: boolean;
