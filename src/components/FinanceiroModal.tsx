@@ -44,7 +44,7 @@ export default function FinanceiroModal({ isOpen, onClose, eventToEdit, onSaved,
       });
       setOutrosCustos(eventToEdit.outros_custos_lista?.map(c => ({
         ...c,
-        valor: String(c.valor || "")
+        valor: typeof c.valor === 'number' ? c.valor.toFixed(2).replace('.',',') : String(c.valor || "")
       })) || []);
     } else {
       setFormData({
