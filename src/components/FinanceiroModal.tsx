@@ -30,6 +30,7 @@ export default function FinanceiroModal({ isOpen, onClose, eventToEdit, onSaved,
   const [novoOutroCusto, setNovoOutroCusto] = useState({ nome: "", valor: "" });
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editingCostId, setEditingCostId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && eventToEdit) {
@@ -60,6 +61,7 @@ export default function FinanceiroModal({ isOpen, onClose, eventToEdit, onSaved,
       setNovoOutroCusto({ nome: "", valor: "" });
     }
     setIsEditing(false);
+    setEditingCostId(null);
   }, [isOpen, eventToEdit]);
 
   if (!isOpen) return null;
@@ -75,15 +77,30 @@ export default function FinanceiroModal({ isOpen, onClose, eventToEdit, onSaved,
 
   const addOutroCusto = () => {
     if (!novoOutroCusto.nome || !novoOutroCusto.valor) return;
-    setOutrosCustos(prev => [
-      ...prev, 
-      { 
-        id: Date.now().toString(), 
-        nome: novoOutroCusto.nome, 
-        valor: novoOutroCusto.valor.replace(/[^0-9.,]/g, '') 
-      }
-    ]);
+    
+    if (editingCostId) {
+      setOutrosCustos(prev => prev.map(c => 
+        c.id === editingCostId 
+          ? { ...c, nome: novoOutroCusto.nome, valor: novoOutroCusto.valor.replace(/[^0-9.,]/g, '') } 
+          : c
+      ));
+      setEditingCostId(null);
+    } else {
+      setOutrosCustos(prev => [
+        ...prev, 
+        { 
+          id: Date.now().toString(), 
+          nome: novoOutroCusto.nome, 
+          valor: novoOutroCusto.valor.replace(/[^0-9.,]/g, '') 
+        }
+      ]);
+    }
     setNovoOutroCusto({ nome: "", valor: "" });
+  };
+
+  const startEditCost = (c: { id: string; nome: string; valor: string }) => {
+    setEditingCostId(c.id);
+    setNovoOutroCusto({ nome: c.nome, valor: c.valor });
   };
 
   const removeOutroCusto = (id: string) => {
@@ -253,7 +270,25 @@ export default function FinanceiroModal({ isOpen, onClose, eventToEdit, onSaved,
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-black text-text font-mono">R$ {parseBRValue(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     {isEditing && (
-                      <button onClick={() => removeOutroCusto(c.id)} className="text-red/60 hover:text-red transition-colors"><X className="w-4 h-4"/></button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => startEditCost(c)} 
+                          className={cn(
+                            "p-1 rounded transition-colors",
+                            editingCostId === c.id ? "text-accent bg-accent/10" : "text-muted hover:text-accent hover:bg-accent/10"
+                          )}
+                          title="Editar item"
+                        >
+                          <Edit2 className="w-3.5 h-3.5"/>
+                        </button>
+                        <button 
+                          onClick={() => removeOutroCusto(c.id)} 
+                          className="p-1 text-muted hover:text-red hover:bg-red/10 rounded transition-colors"
+                          title="Excluir item"
+                        >
+                          <X className="w-3.5 h-3.5"/>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -282,12 +317,25 @@ export default function FinanceiroModal({ isOpen, onClose, eventToEdit, onSaved,
                      className="w-full bg-bg text-text text-sm pl-9 pr-3 py-2 rounded-md border border-white/10 outline-none focus:border-accent transition-colors"
                    />
                  </div>
-                 <button 
-                   onClick={addOutroCusto}
-                   className="bg-accent text-white px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest hover:bg-accent-hover transition-colors shadow-lg shadow-accent/20 flex items-center gap-1"
-                 >
-                   <Plus className="w-4 h-4"/> Add
-                 </button>
+                  <button 
+                    onClick={addOutroCusto}
+                    className={cn(
+                      "px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-1 shrink-0",
+                      editingCostId ? "bg-purple text-white hover:bg-purple-dark shadow-purple/20" : "bg-accent text-white hover:bg-accent-hover shadow-accent/20"
+                    )}
+                  >
+                    {editingCostId ? <Save className="w-4 h-4"/> : <Plus className="w-4 h-4"/>}
+                    {editingCostId ? 'Atualizar' : 'Add'}
+                  </button>
+                  {editingCostId && (
+                    <button 
+                      onClick={() => { setEditingCostId(null); setNovoOutroCusto({ nome: "", valor: "" }); }}
+                      className="p-2 text-muted hover:text-text transition-colors"
+                      title="Cancelar edição"
+                    >
+                      <X className="w-4 h-4"/>
+                    </button>
+                  )}
               </div>
             )}
           </div>
