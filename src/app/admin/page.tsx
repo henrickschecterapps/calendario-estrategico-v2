@@ -1566,7 +1566,7 @@ export default function AdminDashboard() {
                               />
                             </div>
                             <button onClick={() => {
-                               if (opTab === 'Fornecedores') openForm('fornecedor');
+                               if (opTab === 'Fornecedores') { setEditingItem(null); setModalTipo('fornecedor'); setInventoryModalOpen(true); }
                                else if (opTab === 'Viagens') { setEditingViagem(null); setViagemModalOpen(true); }
                                else if (opTab === 'Participantes') { setEditingParticipante(null); setParticipanteModalOpen(true); }
                             }} className="bg-accent hover:bg-accent/80 text-white font-medium px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-sm whitespace-nowrap">
@@ -1591,7 +1591,7 @@ export default function AdminDashboard() {
                                        <td className="py-4 px-5 font-medium text-sm text-muted">{f.contato_responsavel || '---'}</td>
                                        <td className="py-4 px-5 font-medium text-sm text-muted">{f.email || '---'}</td>
                                        <td className="py-4 px-5 font-mono text-sm text-muted">{f.telefone || '---'}</td>
-                                       <td className="py-4 px-5 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => openForm('fornecedor', f)} className="p-1.5 bg-surface text-muted hover:text-accent rounded border border-white/5"><Edit2 className="w-5 h-5"/></button><button onClick={() => handleDeleteItem('fornecedores', f.id, 'fornecedor')} className="p-1.5 bg-surface text-muted hover:text-red rounded border border-white/5"><Trash2 className="w-5 h-5"/></button></div></td>
+                                       <td className="py-4 px-5 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => { setEditingItem(f as any); setModalTipo('fornecedor'); setInventoryModalOpen(true); }} className="p-1.5 bg-surface text-muted hover:text-accent rounded border border-white/5"><Edit2 className="w-5 h-5"/></button><button onClick={() => handleDeleteItem('fornecedores', f.id, 'fornecedor')} className="p-1.5 bg-surface text-muted hover:text-red rounded border border-white/5"><Trash2 className="w-5 h-5"/></button></div></td>
                                     </tr>
                                   ))}
                                   {opTab === 'Viagens' && filteredViagens.map((v) => (
