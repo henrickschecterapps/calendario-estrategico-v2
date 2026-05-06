@@ -416,11 +416,13 @@ export default function AdminDashboard() {
           
           const nivel = data.nivel || (data.vip ? 'VIP' : 'Qualificacao');
           
+          // Destructure to remove any _collection from Firestore data so our param always wins
+          const { _collection: _ignored, id: _docId, ...cleanData } = data;
           return {
-            ...data,
+            ...cleanData,
             id: data.id,
             _collection: coll,
-            tipo: (data.tipo || defaultTipo || 'item').toLowerCase(),
+            tipo: (data.tipo || defaultTipo || 'estoque').toLowerCase(),
             nome,
             descricao,
             quantidade,
@@ -477,26 +479,35 @@ export default function AdminDashboard() {
   const handleUpdateQuantity = async (item: any, delta: number) => {
      const newQty = (Number(item.quantidade) || 0) + delta;
      if (newQty < 0) return;
+     const col = item._collection || "estoque";
      try {
        const db = getFirebaseDb();
-       await updateDoc(doc(db, item._collection || "inventario", item.id), { quantidade: newQty });
+       await updateDoc(doc(db, col, item.id), { quantidade: newQty });
        fetchInventory();
-     } catch (err) {
-       console.error(err);
+     } catch (err: any) {
+       console.error("Erro ao atualizar quantidade:", err);
+       alert(`Erro ao atualizar quantidade: ${err?.message || "Falha na operação."}`);
      }
   };
 
   const handleDeleteItem = (col: string, id: string, label: string) => {
+     if (!col || !id) {
+       console.error("handleDeleteItem: collection or id is missing", { col, id });
+       alert("Erro: não foi possível identificar o item para exclusão.");
+       return;
+     }
      showConfirm(`Deseja realmente remover este ${label}?`, async () => {
        try {
          const db = getFirebaseDb();
+         console.log(`Deleting from collection "${col}", doc id "${id}"`);
          await deleteDoc(doc(db, col, id));
          if (col === 'inventario' || col === 'brindes' || col === 'uniformes' || col === 'estoque') fetchInventory();
          if (col === 'fornecedores') fetchFornecedores();
          if (col === 'viagens') fetchViagens();
          if (col === 'participantes') fetchParticipantes();
-       } catch (err) {
-         console.error(err);
+       } catch (err: any) {
+         console.error("Erro ao excluir:", err);
+         alert(`Erro ao excluir ${label}: ${err?.message || "Permissão negada ou item não encontrado."}`);
        }
      });
   };

@@ -103,21 +103,24 @@ export default function InventoryModal({ isOpen, onClose, tipo, itemToEdit, onSa
         };
 
         if (itemToEdit) {
-          await updateDoc(doc(db, itemToEdit._collection || "estoque", itemToEdit.id), payload);
+          // Use the REAL collection the item came from
+          const targetCollection = itemToEdit._collection || "estoque";
+          console.log(`[InventoryModal] Updating "${targetCollection}/${itemToEdit.id}"`, payload);
+          await updateDoc(doc(db, targetCollection, itemToEdit.id), payload);
         } else {
+          console.log("[InventoryModal] Creating new item in 'estoque'", payload);
           await addDoc(collection(db, "estoque"), {
             ...payload,
             createdAt: serverTimestamp(),
-            _collection: "estoque"
           });
         }
       }
 
       onSaved();
       onClose();
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao salvar.");
+    } catch (err: any) {
+      console.error("[InventoryModal] Save error:", err);
+      alert(`Erro ao salvar: ${err?.message || "Verifique os dados e tente novamente."}`);
     } finally {
       setLoading(false);
     }
