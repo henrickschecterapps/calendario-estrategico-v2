@@ -561,10 +561,11 @@ export default function AdminDashboard() {
       })
       .sort((a,b) => new Date(a.data_ini || 0).getTime() - new Date(b.data_ini || 0).getTime());
 
-  const estoqueBaixo = inventario.filter(i => (i.quantidade || 0) < 10 && i._collection === 'estoque').length;
+  const availableCollections = ['estoque', 'brindes', 'uniformes', 'inventario'];
+  const estoqueBaixo = inventario.filter(i => (i.quantidade || 0) < 10 && availableCollections.includes(i._collection || '')).length;
   
   // Mapear métricas de brindes solicitadas
-  const brindesData = inventario.filter(i => i.tipo === 'brinde' && i._collection === 'estoque');
+  const brindesData = inventario.filter(i => i.tipo === 'brinde' && availableCollections.includes(i._collection || ''));
   const qtdTotalBrindes = brindesData.reduce((acc, b) => acc + (b.quantidade || 0), 0);
   
   // Brindes que não estão alocados em eventos
@@ -966,8 +967,8 @@ export default function AdminDashboard() {
                     <AlertCircle className="w-5 h-5 text-red" /> Alertas de Inventário
                   </h3>
                   <div className="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
-                     {inventario.filter(i => i._collection === 'estoque' && (i.quantidade || 0) < 10).length > 0 ? (
-                       inventario.filter(i => i._collection === 'estoque' && (i.quantidade || 0) < 10).map((i, idx) => (
+                     {inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length > 0 ? (
+                       inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).map((i, idx) => (
                          <div key={idx} className="flex items-center justify-between p-3 bg-red/5 border border-red/10 rounded-lg group hover:bg-red/10 transition-all">
                             <div className="flex gap-3 items-center">
                                <div className="w-8 h-8 bg-surface rounded-md text-red flex items-center justify-center shadow-sm border border-red/10"><Package className="w-5 h-5"/></div>
@@ -1133,8 +1134,8 @@ export default function AdminDashboard() {
                                     <AlertCircle className="w-5 h-5 text-red"/> Alertas Críticos de Estoque
                                  </h3>
                                  <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                    {inventario.filter(i => i._collection === 'estoque' && (i.quantidade || 0) < 10).length > 0 ? (
-                                       inventario.filter(i => i._collection === 'estoque' && (i.quantidade || 0) < 10).map(item => (
+                                    {inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length > 0 ? (
+                                       inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).map(item => (
                                           <div key={item.id} className="flex items-center justify-between p-3 bg-surface border border-white/5 rounded-lg group hover:border-red/30 transition-all">
                                              <div className="flex flex-col">
                                                 <span className="text-sm font-medium text-text tracking-tight uppercase">{item.nome}</span>
@@ -1227,10 +1228,10 @@ export default function AdminDashboard() {
                                {/* TOP STATS BAR */}
                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                   {[
-                                    { label: 'Valor em Estoque', val: `R$ ${inventario.filter(i => i._collection === 'estoque').reduce((acc, i) => acc + (Number(i.quantidade) * parseBRValue(i.preco)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: <TrendingUp className="w-5 h-5"/>, color: 'text-emerald-400' },
-                                    { label: 'Itens Totais', val: `${inventario.filter(i => i._collection === 'estoque').reduce((acc, i) => acc + (Number(i.quantidade) || 0), 0)} un.`, icon: <Box className="w-5 h-5"/>, color: 'text-accent' },
+                                    { label: 'Valor em Estoque', val: `R$ ${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) * parseBRValue(i.preco)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: <TrendingUp className="w-5 h-5"/>, color: 'text-emerald-400' },
+                                    { label: 'Itens Totais', val: `${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) || 0), 0)} un.`, icon: <Box className="w-5 h-5"/>, color: 'text-accent' },
                                     { label: 'Alocados em Eventos', val: `${events.filter(e => e.status !== 'Concluído').reduce((acc, e) => acc + (e.brindes_alocados?.reduce((sum, b) => sum + b.qtd, 0) || 0), 0)} un.`, icon: <Package className="w-5 h-5"/>, color: 'text-amber-400' },
-                                    { label: 'Alertas Críticos', val: inventario.filter(i => i._collection === 'estoque' && (i.quantidade || 0) < 10).length, icon: <AlertTriangle className="w-5 h-5"/>, color: 'text-red' },
+                                    { label: 'Alertas Críticos', val: inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length, icon: <AlertTriangle className="w-5 h-5"/>, color: 'text-red' },
                                   ].map((s, i) => (
                                     <div key={i} className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-4 flex flex-col group hover:bg-surface/50 transition-all">
                                        <div className="flex justify-between items-center mb-1">
@@ -1265,7 +1266,7 @@ export default function AdminDashboard() {
 
                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[600px] overflow-y-auto custom-scrollbar pr-1 pb-10">
                                   {inventario.filter(i => 
-                                    (i._collection === 'estoque') && 
+                                    (['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')) && 
                                     ((i.nome || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()) || 
                                     (i.descricao || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()))
                                   ).map((item, idx) => (
