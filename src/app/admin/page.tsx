@@ -486,8 +486,8 @@ export default function AdminDashboard() {
      }
   };
 
-  const handleDeleteItem = async (col: string, id: string, label: string) => {
-     if (confirm(`Deseja realmente remover este ${label}?`)) {
+  const handleDeleteItem = (col: string, id: string, label: string) => {
+     showConfirm(`Deseja realmente remover este ${label}?`, async () => {
        try {
          const db = getFirebaseDb();
          await deleteDoc(doc(db, col, id));
@@ -498,7 +498,7 @@ export default function AdminDashboard() {
        } catch (err) {
          console.error(err);
        }
-     }
+     });
   };
 
   const onDragStart = (e: React.DragEvent, id: string, type: 'brinde' | 'uniforme') => {
