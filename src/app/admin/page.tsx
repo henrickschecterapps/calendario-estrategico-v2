@@ -2418,8 +2418,9 @@ export default function AdminDashboard() {
        <InventoryModal 
          isOpen={inventoryModalOpen}
          onClose={() => setInventoryModalOpen(false)}
-         editingItem={editingItem}
-         onSuccess={fetchInventory}
+         tipo={editingItem?.tipo || 'estoque'}
+         itemToEdit={editingItem}
+         onSaved={fetchInventory}
        />
 
        {baixaEvent && (

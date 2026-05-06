@@ -65,6 +65,9 @@ export interface TriplaEvent {
   // Arquivos anexados
   arquivos?: { nome: string; url: string; tipo: string }[];
 
+  // Controle de Estoque
+  estoque_baixa_processada?: boolean;
+
   // Campos dinâmicos do Firestore não mapeados explicitamente
   [key: string]: unknown;
 }

@@ -10,11 +10,12 @@ import type { InventoryItem, InventoryType } from "@/types/collections";
 interface InventoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  editingItem: InventoryItem | null;
-  onSuccess: () => void;
+  tipo: 'brinde' | 'uniforme' | 'estoque' | 'fornecedor';
+  itemToEdit: any;
+  onSaved: () => void;
 }
 
-export default function InventoryModal({ isOpen, onClose, editingItem, onSuccess }: InventoryModalProps) {
+export default function InventoryModal({ isOpen, onClose, tipo, itemToEdit, onSaved }: InventoryModalProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
@@ -24,62 +25,99 @@ export default function InventoryModal({ isOpen, onClose, editingItem, onSuccess
     preco: "0,00",
     nivel: "Qualificacao",
     fornecedor: "",
-    tamanhos: [] as { tamanho: string; quantidade: number }[]
+    tamanhos: [] as { tamanho: string; quantidade: number }[],
+    // Fornecedor specific fields
+    email: "",
+    telefone: "",
+    contato_responsavel: ""
   });
 
   const tamanhosPadrao = ["P", "M", "G", "GG", "XG", "Baby Look P", "Baby Look M", "Baby Look G"];
 
   useEffect(() => {
-    if (editingItem) {
+    if (itemToEdit) {
       setFormData({
-        nome: editingItem.nome || "",
-        descricao: editingItem.descricao || "",
-        tipo: editingItem.tipo || "brinde",
-        quantidade: editingItem.quantidade || 0,
-        preco: String(editingItem.preco || "0,00"),
-        nivel: editingItem.nivel || "Qualificacao",
-        fornecedor: editingItem.fornecedor || "",
-        tamanhos: editingItem.tamanhos || []
+        nome: itemToEdit.nome || "",
+        descricao: itemToEdit.descricao || "",
+        tipo: itemToEdit.tipo || (tipo === 'fornecedor' ? 'brinde' : tipo),
+        quantidade: itemToEdit.quantidade || 0,
+        preco: String(itemToEdit.preco || "0,00"),
+        nivel: itemToEdit.nivel || "Qualificacao",
+        fornecedor: itemToEdit.fornecedor || "",
+        tamanhos: itemToEdit.tamanhos || [],
+        email: itemToEdit.email || "",
+        telefone: itemToEdit.telefone || "",
+        contato_responsavel: itemToEdit.contato_responsavel || ""
       });
     } else {
       setFormData({
         nome: "",
         descricao: "",
-        tipo: "brinde",
+        tipo: tipo === 'fornecedor' ? 'brinde' : tipo,
         quantidade: 0,
         preco: "0,00",
         nivel: "Qualificacao",
         fornecedor: "",
-        tamanhos: []
+        tamanhos: [],
+        email: "",
+        telefone: "",
+        contato_responsavel: ""
       });
     }
-  }, [editingItem, isOpen]);
+  }, [itemToEdit, isOpen, tipo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const db = getFirebaseDb();
-      const payload = {
-        ...formData,
-        updatedAt: serverTimestamp(),
-      };
+      
+      if (tipo === 'fornecedor') {
+        const payload = {
+          nome: formData.nome,
+          email: formData.email,
+          telefone: formData.telefone,
+          contato_responsavel: formData.contato_responsavel,
+          updatedAt: serverTimestamp(),
+        };
 
-      if (editingItem) {
-        await updateDoc(doc(db, editingItem._collection || "estoque", editingItem.id), payload);
+        if (itemToEdit) {
+          await updateDoc(doc(db, "fornecedores", itemToEdit.id), payload);
+        } else {
+          await addDoc(collection(db, "fornecedores"), {
+            ...payload,
+            createdAt: serverTimestamp(),
+          });
+        }
       } else {
-        await addDoc(collection(db, "estoque"), {
-          ...payload,
-          createdAt: serverTimestamp(),
-          _collection: "estoque"
-        });
+        const payload = {
+          nome: formData.nome,
+          descricao: formData.descricao,
+          tipo: formData.tipo,
+          quantidade: formData.quantidade,
+          preco: formData.preco,
+          nivel: formData.nivel,
+          fornecedor: formData.fornecedor,
+          tamanhos: formData.tamanhos,
+          updatedAt: serverTimestamp(),
+        };
+
+        if (itemToEdit) {
+          await updateDoc(doc(db, itemToEdit._collection || "estoque", itemToEdit.id), payload);
+        } else {
+          await addDoc(collection(db, "estoque"), {
+            ...payload,
+            createdAt: serverTimestamp(),
+            _collection: "estoque"
+          });
+        }
       }
 
-      onSuccess();
+      onSaved();
       onClose();
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar item.");
+      alert("Erro ao salvar.");
     } finally {
       setLoading(false);
     }
@@ -109,13 +147,13 @@ export default function InventoryModal({ isOpen, onClose, editingItem, onSuccess
         <div className="p-6 border-b border-white/5 bg-white/5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent ring-1 ring-accent/30">
-              {formData.tipo === 'brinde' ? <Package className="w-6 h-6" /> : <Shirt className="w-6 h-6" />}
+              {tipo === 'fornecedor' ? <LayoutGrid className="w-6 h-6" /> : (formData.tipo === 'brinde' ? <Package className="w-6 h-6" /> : <Shirt className="w-6 h-6" />)}
             </div>
             <div>
               <h3 className="text-xl font-bold text-text tracking-tight">
-                {editingItem ? 'Editar Registro' : 'Novo Cadastro de Item'}
+                {itemToEdit ? 'Editar Registro' : tipo === 'fornecedor' ? 'Novo Fornecedor' : 'Novo Cadastro de Item'}
               </h3>
-              <p className="text-sm font-mono text-muted uppercase tracking-widest mt-0.5">Gestão de Inventário Inteligente</p>
+              <p className="text-sm font-mono text-muted uppercase tracking-widest mt-0.5">{tipo === 'fornecedor' ? 'Gestão de Parceiros Estratégicos' : 'Gestão de Inventário Inteligente'}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-muted hover:text-text transition-colors bg-white/5 rounded-full">
@@ -127,107 +165,151 @@ export default function InventoryModal({ isOpen, onClose, editingItem, onSuccess
           <div className="p-6 overflow-y-auto max-h-[70vh] custom-scrollbar space-y-6">
             
             {/* TYPE TOGGLE */}
-            <div className="flex flex-col gap-3">
-               <label className="text-xs font-black text-muted uppercase tracking-[0.2em]">Categoria do Item</label>
-               <div className="grid grid-cols-3 gap-2 bg-bg/50 p-1.5 rounded-xl border border-white/5">
-                  {[
-                    { id: 'brinde', label: 'Brinde', icon: <Package className="w-4 h-4"/> },
-                    { id: 'uniforme', label: 'Uniforme', icon: <Shirt className="w-4 h-4"/> },
-                    { id: 'estoque', label: 'Insumo', icon: <LayoutGrid className="w-4 h-4"/> }
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, tipo: t.id as any })}
-                      className={cn(
-                        "flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all",
-                        formData.tipo === t.id 
-                          ? "bg-accent text-white shadow-lg shadow-accent/20" 
-                          : "text-muted hover:text-text hover:bg-white/5"
-                      )}
-                    >
-                      {t.icon} {t.label}
-                    </button>
-                  ))}
-               </div>
-            </div>
+            {tipo !== 'fornecedor' && (
+              <div className="flex flex-col gap-3">
+                 <label className="text-xs font-black text-muted uppercase tracking-[0.2em]">Categoria do Item</label>
+                 <div className="grid grid-cols-3 gap-2 bg-bg/50 p-1.5 rounded-xl border border-white/5">
+                    {[
+                      { id: 'brinde', label: 'Brinde', icon: <Package className="w-4 h-4"/> },
+                      { id: 'uniforme', label: 'Uniforme', icon: <Shirt className="w-4 h-4"/> },
+                      { id: 'estoque', label: 'Insumo', icon: <LayoutGrid className="w-4 h-4"/> }
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, tipo: t.id as any })}
+                        className={cn(
+                          "flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all",
+                          formData.tipo === t.id 
+                            ? "bg-accent text-white shadow-lg shadow-accent/20" 
+                            : "text-muted hover:text-text hover:bg-white/5"
+                        )}
+                      >
+                        {t.icon} {t.label}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Nome do Item</label>
+                  <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">
+                    {tipo === 'fornecedor' ? 'Razão Social / Nome' : 'Nome do Item'}
+                  </label>
                   <input 
                     type="text" 
                     required
                     value={formData.nome}
                     onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                    placeholder="Ex: Garrafa Térmica 500ml"
+                    placeholder={tipo === 'fornecedor' ? "Ex: Eventos Ltda" : "Ex: Garrafa Térmica 500ml"}
                     className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30"
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Descrição Técnica</label>
-                  <textarea 
-                    rows={3}
-                    value={formData.descricao}
-                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                    placeholder="Detalhes sobre o material, cor, etc..."
-                    className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30 resize-none"
-                  />
-                </div>
+                {tipo === 'fornecedor' ? (
+                  <div>
+                    <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Email de Contato</label>
+                    <input 
+                      type="email" 
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="comercial@empresa.com"
+                      className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Descrição Técnica</label>
+                    <textarea 
+                      rows={3}
+                      value={formData.descricao}
+                      onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                      placeholder="Detalhes sobre o material, cor, etc..."
+                      className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30 resize-none"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Qtd. Total</label>
-                    <input 
-                      type="number" 
-                      required
-                      disabled={formData.tipo === 'uniforme'}
-                      value={formData.quantidade}
-                      onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:border-accent/50 transition-all disabled:opacity-50"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Vlr. Unitário (R$)</label>
-                    <input 
-                      type="text" 
-                      value={formData.preco}
-                      onChange={(e) => setFormData({ ...formData, preco: e.target.value })}
-                      placeholder="0,00"
-                      className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono font-bold text-emerald-400 outline-none focus:border-accent/50 transition-all"
-                    />
-                  </div>
-                </div>
+                {tipo === 'fornecedor' ? (
+                  <>
+                    <div>
+                      <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Telefone / WhatsApp</label>
+                      <input 
+                        type="text" 
+                        value={formData.telefone}
+                        onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                        placeholder="(00) 00000-0000"
+                        className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Contato Responsável</label>
+                      <input 
+                        type="text" 
+                        value={formData.contato_responsavel}
+                        onChange={(e) => setFormData({ ...formData, contato_responsavel: e.target.value })}
+                        placeholder="Nome da pessoa de contato"
+                        className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Qtd. Total</label>
+                        <input 
+                          type="number" 
+                          required
+                          disabled={formData.tipo === 'uniforme'}
+                          value={formData.quantidade}
+                          onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
+                          className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:border-accent/50 transition-all disabled:opacity-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Vlr. Unitário (R$)</label>
+                        <input 
+                          type="text" 
+                          value={formData.preco}
+                          onChange={(e) => setFormData({ ...formData, preco: e.target.value })}
+                          placeholder="0,00"
+                          className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono font-bold text-emerald-400 outline-none focus:border-accent/50 transition-all"
+                        />
+                      </div>
+                    </div>
 
-                {formData.tipo === 'brinde' && (
-                  <div>
-                    <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Nível / Prioridade</label>
-                    <select 
-                      value={formData.nivel}
-                      onChange={(e) => setFormData({ ...formData, nivel: e.target.value })}
-                      className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:border-accent/50 transition-all appearance-none cursor-pointer"
-                    >
-                      <option value="Qualificacao">Qualificação</option>
-                      <option value="VIP">VIP</option>
-                      <option value="Premium">Premium</option>
-                    </select>
-                  </div>
+                    {formData.tipo === 'brinde' && (
+                      <div>
+                        <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Nível / Prioridade</label>
+                        <select 
+                          value={formData.nivel}
+                          onChange={(e) => setFormData({ ...formData, nivel: e.target.value })}
+                          className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:border-accent/50 transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="Qualificacao">Qualificação</option>
+                          <option value="VIP">VIP</option>
+                          <option value="Premium">Premium</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Fornecedor / Origem</label>
+                      <input 
+                        type="text" 
+                        value={formData.fornecedor}
+                        onChange={(e) => setFormData({ ...formData, fornecedor: e.target.value })}
+                        placeholder="Empresa fornecedora"
+                        className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30"
+                      />
+                    </div>
+                  </>
                 )}
-
-                <div>
-                  <label className="text-xs font-black text-muted uppercase tracking-widest mb-1.5 block">Fornecedor / Origem</label>
-                  <input 
-                    type="text" 
-                    value={formData.fornecedor}
-                    onChange={(e) => setFormData({ ...formData, fornecedor: e.target.value })}
-                    placeholder="Empresa fornecedora"
-                    className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-text outline-none focus:border-accent/50 transition-all placeholder:text-muted/30"
-                  />
-                </div>
               </div>
             </div>
 
@@ -280,7 +362,7 @@ export default function InventoryModal({ isOpen, onClose, editingItem, onSuccess
               className="px-8 py-2.5 bg-accent text-white font-bold rounded-xl text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20 disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {editingItem ? 'Salvar Alterações' : 'Cadastrar no Estoque'}
+              {itemToEdit ? 'Salvar Alterações' : tipo === 'fornecedor' ? 'Cadastrar Fornecedor' : 'Cadastrar no Estoque'}
             </button>
           </div>
         </form>

@@ -159,9 +159,11 @@ export interface BrindeAlocado {
   id?: string;
   docId?: string;
   item: string;
+  nome?: string;
   qtd: number;
   qtd_consumida?: number;
   qtd_retornada?: number;
+  tipo?: string;
   baixa_confirmada?: boolean;
 }
 
