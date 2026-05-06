@@ -230,6 +230,12 @@ export default function AdminDashboard() {
   const [editUserLoading, setEditUserLoading] = useState(false);
   const [editUserError, setEditUserError] = useState("");
 
+  // Custom confirmation modal (replaces native confirm() which gets dismissed by React re-renders)
+  const [confirmModal, setConfirmModal] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmModal({ open: true, message, onConfirm });
+  };
+
   useEffect(() => {
     fetchEvents();
     fetchInventory(); // For Dashboard metrics
@@ -366,7 +372,7 @@ export default function AdminDashboard() {
   };
 
   const deleteOrganizador = async (id: string) => {
-    if(!confirm("Remover este organizador padrão?")) return;
+    // Uses showConfirm in the onClick handler instead
     try {
       await deleteDoc(doc(getFirebaseDb(), "responsaveis", id));
       fetchConfigData();
@@ -2448,6 +2454,41 @@ export default function AdminDashboard() {
            }}
          />
        )}
+
+        {/* Custom Confirmation Modal */}
+        {confirmModal.open && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-surface border border-white/10 w-full max-w-md rounded-2xl shadow-2xl p-8 animate-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-red/10 flex items-center justify-center text-red ring-1 ring-red/20">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-text">Confirmar Ação</h3>
+                  <p className="text-sm text-muted mt-1">Esta ação não pode ser desfeita.</p>
+                </div>
+              </div>
+              <p className="text-sm text-text/80 mb-8 bg-white/5 p-4 rounded-xl border border-white/5">{confirmModal.message}</p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setConfirmModal({ open: false, message: '', onConfirm: () => {} })}
+                  className="px-6 py-2.5 text-sm font-medium text-muted hover:text-text transition-all rounded-xl border border-white/10 hover:border-white/20"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    confirmModal.onConfirm();
+                    setConfirmModal({ open: false, message: '', onConfirm: () => {} });
+                  }}
+                  className="px-6 py-2.5 bg-red text-white font-bold rounded-xl text-sm hover:bg-red/80 transition-all shadow-lg shadow-red/20 flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" /> Confirmar Exclusão
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
