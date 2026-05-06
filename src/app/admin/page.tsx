@@ -47,7 +47,7 @@ import {
   ArrowRight,
   ChevronRight,
   CheckCircle2,
-  ClipboardCheck
+  ClipboardCheck, Truck, Mail, Phone
 } from "lucide-react";
 import { 
   Chart as ChartJS, 
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
   const [pedidoModalOpen, setPedidoModalOpen] = useState(false);
   const [editingPedido, setEditingPedido] = useState<InventoryItem | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [inventorySubTab, setInventorySubTab] = useState<'nexus' | 'archive'>('nexus');
+  const [inventorySubTab, setInventorySubTab] = useState<'nexus' | 'archive' | 'suppliers'>('nexus');
 
   const [viagemModalOpen, setViagemModalOpen] = useState(false);
   const [editingViagem, setEditingViagem] = useState<Viagem | null>(null);
@@ -696,7 +696,7 @@ export default function AdminDashboard() {
       <TopBar />
       
       {/* Modals */}
-      <InventoryModal isOpen={modalOpen} onClose={() => setModalOpen(false)} tipo={modalTipo as any} itemToEdit={editingItem} onSaved={() => { if (modalTipo === 'fornecedor') fetchFornecedores(); else fetchInventory(); }} />
+      
       <PedidoModal isOpen={pedidoModalOpen} onClose={() => setPedidoModalOpen(false)} itemToEdit={editingPedido} onSaved={fetchInventory} />
       <ViagemModal isOpen={viagemModalOpen} onClose={() => setViagemModalOpen(false)} itemToEdit={editingViagem} onSaved={fetchViagens} />
       <ParticipanteModal isOpen={participanteModalOpen} onClose={() => setParticipanteModalOpen(false)} itemToEdit={editingParticipante} onSaved={fetchParticipantes} />
@@ -1189,288 +1189,289 @@ export default function AdminDashboard() {
                    {/* Estoque Module */}
                     {/* Estoque Module — Spatial Nexus Design */}
                     {opTab === 'Estoque' && (
-                      <div className="flex flex-col gap-6 animate-in fade-in duration-700">
-                         
-                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            {/* SUB-TABS SWITCHER */}
-                            <div className="flex gap-2 p-1 bg-surface/30 backdrop-blur-md border border-white/5 rounded-xl w-fit">
-                               <button 
-                                  onClick={() => setInventorySubTab('nexus')}
-                                  className={cn(
-                                     "flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                                     inventorySubTab === 'nexus' ? "bg-accent text-white shadow-lg shadow-accent/20" : "text-muted hover:text-text hover:bg-white/5"
-                                  )}
-                               >
-                                  <Box className="w-4 h-4" /> Nexus Central
-                               </button>
-                               <button 
-                                  onClick={() => setInventorySubTab('archive')}
-                                  className={cn(
-                                     "flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                                     inventorySubTab === 'archive' ? "bg-accent text-white shadow-lg shadow-accent/20" : "text-muted hover:text-text hover:bg-white/5"
-                                  )}
-                               >
-                                  <History className="w-4 h-4" /> Arquivo de Consumo
-                               </button>
-                            </div>
+                       <div className="flex flex-col flex-1 gap-6 animate-in fade-in duration-500 h-full min-h-[700px]">
+                          {/* SUB-NAVIGATION TAB SELECTOR */}
+                          <div className="flex flex-wrap items-center justify-between gap-4">
+                             <div className="flex gap-2 p-1 bg-surface/30 backdrop-blur-md border border-white/5 rounded-xl w-fit">
+                                <button 
+                                   onClick={() => setInventorySubTab('nexus')}
+                                   className={cn(
+                                      "flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                      inventorySubTab === 'nexus' ? "bg-accent text-white shadow-lg shadow-accent/20" : "text-muted hover:text-text hover:bg-white/5"
+                                   )}
+                                >
+                                   <Box className="w-4 h-4" /> Nexus Central
+                                </button>
+                                <button 
+                                   onClick={() => setInventorySubTab('archive')}
+                                   className={cn(
+                                      "flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                      inventorySubTab === 'archive' ? "bg-accent text-white shadow-lg shadow-accent/20" : "text-muted hover:text-text hover:bg-white/5"
+                                   )}
+                                >
+                                   <History className="w-4 h-4" /> Arquivo de Consumo
+                                </button>
+                                <button 
+                                   onClick={() => setInventorySubTab('suppliers')}
+                                   className={cn(
+                                      "flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                      inventorySubTab === 'suppliers' ? "bg-accent text-white shadow-lg shadow-accent/20" : "text-muted hover:text-text hover:bg-white/5"
+                                   )}
+                                >
+                                   <Truck className="w-4 h-4" /> Fornecedores
+                                </button>
+                             </div>
 
-                            <div className="flex items-center gap-3">
-                               <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Visão:</span>
-                               <div className="flex gap-2 bg-surface/30 p-1 rounded-lg border border-white/5">
-                                  <button onClick={() => setViewMode('grid')} className={cn("p-1.5 rounded", viewMode === 'grid' ? "bg-accent/20 text-accent" : "text-muted")}><LayoutDashboard className="w-4 h-4"/></button>
-                                  <button onClick={() => setViewMode('list')} className={cn("p-1.5 rounded", viewMode === 'list' ? "bg-accent/20 text-accent" : "text-muted")}><Users className="w-4 h-4"/></button>
-                               </div>
-                            </div>
-                         </div>
+                             <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Visão:</span>
+                                <div className="flex gap-2 bg-surface/30 p-1 rounded-lg border border-white/5">
+                                   <button onClick={() => setViewMode('grid')} className={cn("p-1.5 rounded", viewMode === 'grid' ? "bg-accent/20 text-accent" : "text-muted")}><LayoutDashboard className="w-4 h-4"/></button>
+                                   <button onClick={() => setViewMode('list')} className={cn("p-1.5 rounded", viewMode === 'list' ? "bg-accent/20 text-accent" : "text-muted")}><Users className="w-4 h-4"/></button>
+                                </div>
+                             </div>
+                          </div>
 
-                         {inventorySubTab === 'nexus' ? (
-                            <>
-                               {/* TOP STATS BAR */}
-                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                  {[
-                                    { label: 'Valor em Estoque', val: `R$ ${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) * parseBRValue(i.preco)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: <TrendingUp className="w-5 h-5"/>, color: 'text-emerald-400' },
-                                    { label: 'Itens Totais', val: `${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) || 0), 0)} un.`, icon: <Box className="w-5 h-5"/>, color: 'text-accent' },
-                                    { label: 'Alocados em Eventos', val: `${events.filter(e => e.status !== 'Concluído').reduce((acc, e) => acc + (e.brindes_alocados?.reduce((sum, b) => sum + b.qtd, 0) || 0), 0)} un.`, icon: <Package className="w-5 h-5"/>, color: 'text-amber-400' },
-                                    { label: 'Alertas Críticos', val: inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length, icon: <AlertTriangle className="w-5 h-5"/>, color: 'text-red' },
-                                  ].map((s, i) => (
-                                    <div key={i} className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-4 flex flex-col group hover:bg-surface/50 transition-all">
-                                       <div className="flex justify-between items-center mb-1">
-                                          <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{s.label}</span>
-                                          <div className={cn("opacity-40 group-hover:opacity-100 transition-opacity", s.color)}>{s.icon}</div>
-                                       </div>
-                                       <div className={cn("text-2xl font-bold tracking-tight", s.color)}>{s.val}</div>
-                                    </div>
-                                  ))}
-                               </div>
-
-                         {/* ASYMMETRIC GRID (Left: Stock Matrix, Right: Event History) */}
-                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
-                            
-                            {/* COLUMN 1: MATRIZ DE ESTOQUE CENTRAL (2/3) */}
-                            <div className="lg:col-span-2 space-y-4">
-                               <div className="flex items-center justify-between bg-surface/30 p-3 rounded-xl border border-white/5">
-                                  <div className="relative flex-1 max-w-md">
-                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/40" />
-                                     <input 
-                                       type="text" 
-                                       placeholder="Buscar na matriz de estoque..." 
-                                       value={searchTerms.almoxarifado} 
-                                       onChange={(e) => setSearchTerms({ ...searchTerms, almoxarifado: e.target.value })} 
-                                       className="w-full pl-9 pr-4 py-2 bg-bg/50 border border-white/5 rounded-lg text-sm font-medium focus:border-accent/40 outline-none transition-all placeholder:text-muted/50" 
-                                     />
-                                  </div>
-                                  <button onClick={() => { setEditingItem(null); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
-                                    <Plus className="w-5 h-5"/> Novo Item
-                                  </button>
-                               </div>
-
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[600px] overflow-y-auto custom-scrollbar pr-1 pb-10">
-                                  {inventario.filter(i => 
-                                    (['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')) && 
-                                    ((i.nome || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()) || 
-                                    (i.descricao || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()))
-                                  ).map((item, idx) => (
-                                    <div key={idx} className="bg-surface/30 hover:bg-surface/60 backdrop-blur-xl border border-white/5 hover:border-white/15 rounded-2xl p-5 flex flex-col group transition-all duration-500 overflow-hidden min-h-[220px]">
-                                       <div className="flex items-start justify-between mb-4">
-                                          <div className={cn(
-                                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/5",
-                                             item.tipo === 'brinde' ? 'bg-amber/5 text-amber' : (item.tipo === 'uniforme' ? 'bg-purple/5 text-purple' : 'bg-emerald/5 text-emerald-400')
-                                          )}>
-                                             {item.tipo === 'brinde' ? <Package className="w-5 h-5"/> : <Shirt className="w-5 h-5"/>}
-                                          </div>
-                                          <div className={cn(
-                                             "px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border border-white/10",
-                                             item.tipo === 'brinde' ? 'bg-amber/10 text-amber border-amber/20' : (item.tipo === 'uniforme' ? 'bg-purple/10 text-purple border-purple/20' : 'bg-emerald/10 text-emerald-400 border-emerald/20')
-                                          )}>
-                                             {item.tipo}
-                                          </div>
-                                       </div>
-                                       
-                                       <div className="min-w-0 mb-4">
-                                          <h3 className="text-base font-bold text-text truncate uppercase tracking-tight">{item.nome}</h3>
-                                          <p className="text-xs text-muted line-clamp-2 mt-1 leading-relaxed">{item.descricao || 'Sem descrição técnica cadastrada'}</p>
-                                       </div>
-
-                                       <div className="grid grid-cols-2 gap-3 mt-auto">
-                                          <div className="bg-bg/40 border border-white/5 rounded-xl p-3 flex flex-col">
-                                             <span className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Qtd. Física</span>
-                                             <div className="flex items-center justify-between">
-                                                <span className={cn("text-lg font-bold", (item.quantidade || 0) < 10 ? 'text-red' : 'text-text')}>
-                                                   {item.quantidade || 0}
-                                                </span>
-                                                <div className="flex gap-1">
-                                                   <button onClick={() => handleUpdateQuantity(item, -1)} className="w-5 h-5 flex items-center justify-center rounded bg-white/5 text-muted hover:text-red transition-all">-</button>
-                                                   <button onClick={() => handleUpdateQuantity(item, 1)} className="w-5 h-5 flex items-center justify-center rounded bg-white/5 text-muted hover:text-green transition-all">+</button>
-                                                </div>
-                                             </div>
-                                          </div>
-                                          <div className="bg-bg/40 border border-white/5 rounded-xl p-3 flex flex-col">
-                                             <span className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Custo Unit.</span>
-                                             <span className="text-lg font-mono font-bold text-emerald-400">R$ {item.preco || '0,00'}</span>
-                                          </div>
-                                       </div>
-
-                                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
-                                          <div className="flex gap-2">
-                                             <button onClick={() => { setEditingItem(item); setInventoryModalOpen(true); }} className="p-2 bg-surface text-muted hover:text-accent rounded-lg border border-white/5 hover:border-accent/20 transition-all"><Edit2 className="w-4 h-4"/></button>
-                                             <button onClick={() => handleDeleteItem('estoque', item.id, 'item')} className="p-2 bg-surface text-muted hover:text-red rounded-lg border border-white/5 hover:border-red/20 transition-all"><Trash2 className="w-4 h-4"/></button>
-                                          </div>
-                                          {item.nivel && <span className="text-[9px] font-black bg-white/5 text-muted px-2 py-1 rounded border border-white/10 uppercase">{item.nivel}</span>}
-                                       </div>
-                                    </div>
-                                  ))}
-                               </div>
-                            </div>
-
-                            {/* COLUMN 2: EVENT TIMELINE & CONSUMPTION (1/3) */}
-                            <div className="lg:col-span-1 flex flex-col gap-4">
-                               <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-5 flex flex-col h-[700px]">
-                                  <div className="flex items-center justify-between mb-6">
-                                     <h3 className="text-sm font-black text-text uppercase tracking-widest flex items-center gap-2">
-                                        <History className="w-5 h-5 text-accent" /> Timeline de Consumo
-                                     </h3>
-                                     <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-[10px] font-bold border border-accent/20">EVENTOS</span>
-                                  </div>
-
-                                  <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                                     {events
-                                       .filter(e => e.brindes_alocados && e.brindes_alocados.length > 0)
-                                       .sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime())
-                                       .map(evt => (
-                                          <div key={evt.id} className={cn(
-                                             "relative pl-6 border-l-2 transition-all group",
-                                             evt.status === 'Concluído' ? (evt.estoque_baixa_processada ? 'border-green/30' : 'border-amber/50 animate-pulse') : 'border-accent/30'
-                                          )}>
-                                             <div className={cn(
-                                                "absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-bg z-10",
-                                                evt.status === 'Concluído' ? (evt.estoque_baixa_processada ? 'bg-green' : 'bg-amber') : 'bg-accent'
-                                             )} />
-                                             
-                                             <div className="bg-white/5 border border-white/5 hover:border-white/15 rounded-xl p-4 transition-all group">
-                                                <div className="flex justify-between items-start mb-2">
-                                                   <div className="flex flex-col min-w-0">
-                                                      <span className="text-xs font-mono text-muted uppercase tracking-wider">{formatToBRDate(evt.data_ini)}</span>
-                                                      <h4 className="text-sm font-bold text-text truncate pr-2 uppercase group-hover:text-accent transition-colors">{evt.evento}</h4>
-                                                   </div>
-                                                   <span className={cn(
-                                                      "text-[9px] font-black px-2 py-0.5 rounded border uppercase",
-                                                      evt.status === 'Concluído' ? 'bg-green/10 text-green border-green/20' : 'bg-accent/10 text-accent border-accent/20'
-                                                   )}>
-                                                      {evt.status}
-                                                   </span>
-                                                </div>
-
-                                                <div className="flex flex-wrap gap-1.5 mb-3">
-                                                   {evt.brindes_alocados?.map((b, idx: number) => (
-                                                      <span key={idx} className="bg-bg/50 text-muted px-2 py-0.5 rounded text-[10px] font-mono border border-white/5 flex items-center gap-1">
-                                                         <span className="text-accent font-bold">{b.qtd}x</span> {b.item}
-                                                      </span>
-                                                   ))}
-                                                </div>
-
-                                                {evt.status === 'Concluído' && !evt.estoque_baixa_processada && (
-                                                   <button 
-                                                      onClick={() => { setBaixaEvent(evt); setBaixaModalOpen(true); }}
-                                                      className="w-full bg-amber/20 hover:bg-amber text-amber hover:text-bg font-bold py-2 rounded-lg text-xs transition-all flex items-center justify-center gap-2 uppercase tracking-widest border border-amber/30"
-                                                   >
-                                                      <ClipboardCheck className="w-4 h-4" /> Finalizar Inventário
-                                                   </button>
-                                                )}
-
-                                                {evt.estoque_baixa_processada && (
-                                                   <div className="flex items-center gap-2 text-[10px] font-black text-green/60 uppercase tracking-widest bg-green/5 p-2 rounded-lg border border-green/10">
-                                                      <CheckCircle2 className="w-3.5 h-3.5" /> Baixa Processada
-                                                   </div>
-                                                )}
-                                             </div>
-                                          </div>
-                                       ))}
-
-                                     {events.filter(e => e.brindes_alocados && e.brindes_alocados.length > 0).length === 0 && (
-                                        <div className="h-full flex flex-col items-center justify-center text-muted gap-3 opacity-40">
-                                           <Package className="w-8 h-8" />
-                                           <p className="text-xs font-mono uppercase tracking-[0.2em] text-center">Nenhuma alocação registrada</p>
+                          {inventorySubTab === 'nexus' ? (
+                             <>
+                                {/* TOP STATS BAR */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                   {[
+                                     { label: 'Valor em Estoque', val: `R$ ${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) * parseBRValue(i.preco)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: <TrendingUp className="w-5 h-5"/>, color: 'text-emerald-400' },
+                                     { label: 'Itens Totais', val: `${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) || 0), 0)} un.`, icon: <Box className="w-5 h-5"/>, color: 'text-accent' },
+                                     { label: 'Alocados em Eventos', val: `${events.filter(e => e.status !== 'Concluído').reduce((acc, e) => acc + (e.brindes_alocados?.reduce((sum, b) => sum + b.qtd, 0) || 0), 0)} un.`, icon: <Package className="w-5 h-5"/>, color: 'text-amber-400' },
+                                     { label: 'Alertas Críticos', val: inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length, icon: <AlertTriangle className="w-5 h-5"/>, color: 'text-red' },
+                                   ].map((s, i) => (
+                                     <div key={i} className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-4 flex flex-col group hover:bg-surface/50 transition-all">
+                                        <div className="flex justify-between items-center mb-1">
+                                           <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{s.label}</span>
+                                           <div className={cn("opacity-40 group-hover:opacity-100 transition-opacity", s.color)}>{s.icon}</div>
                                         </div>
-                                     )}
-                                  </div>
-                               </div>
-                            </div>
-                         </div>
-                      </>
-                   ) : (
-                         /* ARCHIVE VIEW: List of items consumed in events */
-                         <div className="flex flex-col gap-4 animate-in slide-in-from-right-4 duration-500">
-                            <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6">
-                               <div className="flex items-center justify-between mb-8">
-                                  <div>
-                                     <h3 className="text-xl font-bold text-text flex items-center gap-2">
-                                        <History className="w-6 h-6 text-accent" /> Histórico de Alocação e Consumo
-                                     </h3>
-                                     <p className="text-sm text-muted mt-1">Visualização detalhada de itens que saíram do estoque central para eventos passados.</p>
-                                  </div>
-                               </div>
+                                        <div className={cn("text-2xl font-bold tracking-tight", s.color)}>{s.val}</div>
+                                     </div>
+                                   ))}
+                                </div>
 
-                               <div className="grid grid-cols-1 gap-4 h-[700px] overflow-y-auto custom-scrollbar pr-2 pb-10">
-                                  {events
-                                     .filter(e => e.brindes_alocados && e.brindes_alocados.length > 0)
-                                     .sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime())
-                                     .map(evt => (
-                                        <div key={evt.id} className="bg-bg/40 border border-white/5 rounded-2xl p-5 hover:bg-bg/60 transition-all group">
-                                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                                              <div className="flex items-center gap-4">
-                                                 <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
-                                                    <Briefcase className="w-6 h-6" />
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
+                                   <div className="lg:col-span-2 space-y-4">
+                                      <div className="flex items-center justify-between bg-surface/30 p-3 rounded-xl border border-white/5">
+                                         <div className="relative flex-1 max-w-md">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/40" />
+                                            <input 
+                                              type="text" 
+                                              placeholder="Buscar na matriz de estoque..." 
+                                              value={searchTerms.almoxarifado} 
+                                              onChange={(e) => setSearchTerms({ ...searchTerms, almoxarifado: e.target.value })} 
+                                              className="w-full pl-9 pr-4 py-2 bg-bg/50 border border-white/5 rounded-lg text-sm font-medium focus:border-accent/40 outline-none transition-all placeholder:text-muted/50" 
+                                            />
+                                         </div>
+                                         <button onClick={() => { setEditingItem(null); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
+                                           <Plus className="w-5 h-5"/> Novo Item
+                                         </button>
+                                      </div>
+
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[600px] overflow-y-auto custom-scrollbar pr-1 pb-10">
+                                         {inventario.filter(i => 
+                                           (['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')) && (Number(i.quantidade) > 0) && 
+                                           ((i.nome || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()) || 
+                                           (i.descricao || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()))
+                                         ).map((item, idx) => (
+                                           <div key={idx} className="bg-surface/30 hover:bg-surface/60 backdrop-blur-xl border border-white/5 hover:border-white/15 rounded-2xl p-5 flex flex-col group transition-all duration-500 overflow-hidden min-h-[220px]">
+                                              <div className="flex items-start justify-between mb-4">
+                                                 <div className={cn(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/5",
+                                                    item.tipo === 'brinde' ? 'bg-amber/5 text-amber' : (item.tipo === 'uniforme' ? 'bg-purple/5 text-purple' : 'bg-emerald/5 text-emerald-400')
+                                                 )}>
+                                                    {item.tipo === 'brinde' ? <Package className="w-5 h-5"/> : <Shirt className="w-5 h-5"/>}
                                                  </div>
-                                                 <div>
-                                                    <h4 className="text-base font-bold text-text group-hover:text-accent transition-colors uppercase">{evt.evento}</h4>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                       <span className="text-xs font-mono text-muted uppercase tracking-wider">{formatToBRDate(evt.data_ini)}</span>
-                                                       <span className="w-1 h-1 rounded-full bg-white/20" />
-                                                       <span className="text-xs text-muted">{evt.uf}</span>
-                                                    </div>
+                                                 <div className={cn(
+                                                    "px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border border-white/10",
+                                                    item.tipo === 'brinde' ? 'bg-amber/10 text-amber border-amber/20' : (item.tipo === 'uniforme' ? 'bg-purple/10 text-purple border-purple/20' : 'bg-emerald/10 text-emerald-400 border-emerald/20')
+                                                 )}>
+                                                    {item.tipo}
                                                  </div>
                                               </div>
-                                              <div className="flex items-center gap-2">
-                                                 {evt.estoque_baixa_processada ? (
-                                                    <span className="px-3 py-1 rounded-full bg-green/10 text-green text-[10px] font-black uppercase tracking-widest border border-green/20">Consumo Confirmado</span>
-                                                 ) : (
-                                                    <span className="px-3 py-1 rounded-full bg-amber/10 text-amber text-[10px] font-black uppercase tracking-widest border border-amber/20">Pendente de Baixa</span>
-                                                 )}
+                                              <div className="min-w-0 mb-4">
+                                                 <h3 className="text-base font-bold text-text truncate uppercase tracking-tight">{item.nome}</h3>
+                                                 <p className="text-xs text-muted line-clamp-2 mt-1 leading-relaxed">{item.descricao || 'Sem descrição técnica cadastrada'}</p>
+                                              </div>
+                                              <div className="grid grid-cols-2 gap-3 mt-auto">
+                                                 <div className="bg-bg/40 border border-white/5 rounded-xl p-3 flex flex-col">
+                                                    <span className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Qtd. Física</span>
+                                                    <div className="flex items-center justify-between">
+                                                       <span className={cn("text-lg font-bold", (item.quantidade || 0) < 10 ? 'text-red' : 'text-text')}>
+                                                          {item.quantidade || 0}
+                                                       </span>
+                                                       <div className="flex gap-1">
+                                                          <button onClick={() => handleUpdateQuantity(item, -1)} className="w-5 h-5 flex items-center justify-center rounded bg-white/5 text-muted hover:text-red transition-all">-</button>
+                                                          <button onClick={() => handleUpdateQuantity(item, 1)} className="w-5 h-5 flex items-center justify-center rounded bg-white/5 text-muted hover:text-green transition-all">+</button>
+                                                       </div>
+                                                    </div>
+                                                 </div>
+                                                 <div className="bg-bg/40 border border-white/5 rounded-xl p-3 flex flex-col">
+                                                    <span className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Custo Unit.</span>
+                                                    <span className="text-lg font-mono font-bold text-emerald-400">R$ {item.preco || '0,00'}</span>
+                                                 </div>
+                                              </div>
+                                              <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                                                 <div className="flex gap-2">
+                                                    <button onClick={() => { setEditingItem(item); setInventoryModalOpen(true); }} className="p-2 bg-surface text-muted hover:text-accent rounded-lg border border-white/5 hover:border-accent/20 transition-all"><Edit2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => handleDeleteItem('estoque', item.id, 'item')} className="p-2 bg-surface text-muted hover:text-red rounded-lg border border-white/5 hover:border-red/20 transition-all"><Trash2 className="w-4 h-4"/></button>
+                                                 </div>
                                               </div>
                                            </div>
-
-                                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                              {evt.brindes_alocados?.map((b, idx) => (
-                                                 <div key={idx} className="bg-surface/50 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-lg bg-bg/50 flex items-center justify-center text-muted border border-white/5">
-                                                       {b.tipo === 'uniforme' ? <Shirt className="w-5 h-5" /> : <Package className="w-5 h-5" />}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                       <div className="flex justify-between items-start">
-                                                          <span className="text-sm font-bold text-text truncate pr-2">{b.nome || b.item}</span>
-                                                          <span className="text-xs font-black text-accent">{b.qtd} un.</span>
+                                         ))}
+                                      </div>
+                                   </div>
+                                   <div className="lg:col-span-1 flex flex-col gap-4">
+                                      <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-5 flex flex-col h-[700px]">
+                                         <div className="flex items-center justify-between mb-6">
+                                            <h3 className="text-sm font-black text-text uppercase tracking-widest flex items-center gap-2">
+                                               <History className="w-5 h-5 text-accent" /> Timeline de Consumo
+                                            </h3>
+                                         </div>
+                                         <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                                            {events
+                                              .filter(e => e.brindes_alocados && e.brindes_alocados.length > 0)
+                                              .sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime())
+                                              .map(evt => (
+                                                 <div key={evt.id} className={cn(
+                                                    "relative pl-6 border-l-2 transition-all group",
+                                                    evt.status === 'Concluído' ? (evt.estoque_baixa_processada ? 'border-green/30' : 'border-amber/50 animate-pulse') : 'border-accent/30'
+                                                 )}>
+                                                    <div className={cn(
+                                                       "absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-bg z-10",
+                                                       evt.status === 'Concluído' ? (evt.estoque_baixa_processada ? 'bg-green' : 'bg-amber') : 'bg-accent'
+                                                    )} />
+                                                    <div className="bg-white/5 border border-white/5 hover:border-white/15 rounded-xl p-4 transition-all group">
+                                                       <div className="flex justify-between items-start mb-2">
+                                                          <div className="flex flex-col min-w-0">
+                                                             <span className="text-xs font-mono text-muted uppercase tracking-wider">{formatToBRDate(evt.data_ini)}</span>
+                                                             <h4 className="text-sm font-bold text-text truncate pr-2 uppercase group-hover:text-accent transition-colors">{evt.evento}</h4>
+                                                          </div>
                                                        </div>
-                                                       <div className="flex items-center gap-2 mt-1">
-                                                          <span className="text-[9px] font-black uppercase text-muted tracking-widest">{b.tipo}</span>
-                                                          {evt.estoque_baixa_processada && (
-                                                             <>
-                                                                <span className="w-1 h-1 rounded-full bg-white/10" />
-                                                                <span className="text-[9px] font-bold text-green uppercase">Entregue: {b.qtd_consumida || b.qtd}</span>
-                                                             </>
-                                                          )}
+                                                       <div className="flex flex-wrap gap-1.5 mb-3">
+                                                          {evt.brindes_alocados?.map((b, idx) => (
+                                                             <span key={idx} className="bg-bg/50 text-muted px-2 py-0.5 rounded text-[10px] font-mono border border-white/5 flex items-center gap-1">
+                                                                <span className="text-accent font-bold">{b.qtd}x</span> {b.item}
+                                                             </span>
+                                                          ))}
                                                        </div>
+                                                       {evt.status === 'Concluído' && !evt.estoque_baixa_processada && (
+                                                          <button onClick={() => { setBaixaEvent(evt); setBaixaModalOpen(true); }} className="w-full bg-amber/20 hover:bg-amber text-amber hover:text-bg font-bold py-2 rounded-lg text-xs transition-all flex items-center justify-center gap-2 uppercase tracking-widest border border-amber/30">
+                                                             <ClipboardCheck className="w-4 h-4" /> Finalizar Inventário
+                                                          </button>
+                                                       )}
+                                                       {evt.estoque_baixa_processada && (
+                                                          <div className="flex items-center gap-2 text-[10px] font-black text-green/60 uppercase tracking-widest bg-green/5 p-2 rounded-lg border border-green/10">
+                                                             <CheckCircle2 className="w-3.5 h-3.5" /> Baixa Processada
+                                                          </div>
+                                                       )}
                                                     </div>
                                                  </div>
                                               ))}
-                                           </div>
-                                        </div>
-                                     ))}
-                               </div>
-                            </div>
-                         </div>
-                      )}
-                   </div>
-                )}
+                                         </div>
+                                      </div>
+                                   </div>
+                                </div>
+                             </>
+                          ) : inventorySubTab === 'archive' ? (
+                             <div className="flex flex-col gap-4 animate-in slide-in-from-right-4 duration-500">
+                                <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6">
+                                   <div className="flex items-center justify-between mb-8">
+                                      <div>
+                                         <h3 className="text-xl font-bold text-text flex items-center gap-2">
+                                            <History className="w-6 h-6 text-accent" /> Histórico de Alocação e Consumo
+                                         </h3>
+                                         <p className="text-sm text-muted mt-1">Visualização detalhada de itens que saíram do estoque central para eventos passados.</p>
+                                      </div>
+                                   </div>
+                                   <div className="grid grid-cols-1 gap-4 h-[700px] overflow-y-auto custom-scrollbar pr-2 pb-10">
+                                      {events
+                                         .filter(e => e.brindes_alocados && e.brindes_alocados.length > 0)
+                                         .sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime())
+                                         .map(evt => (
+                                            <div key={evt.id} className="bg-bg/40 border border-white/5 rounded-2xl p-5 hover:bg-bg/60 transition-all group">
+                                               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                                  <div className="flex items-center gap-4">
+                                                     <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
+                                                        <Briefcase className="w-6 h-6" />
+                                                     </div>
+                                                     <div>
+                                                        <h4 className="text-base font-bold text-text group-hover:text-accent transition-colors uppercase">{evt.evento}</h4>
+                                                        <div className="flex items-center gap-3 mt-1">
+                                                           <span className="text-xs font-mono text-muted uppercase tracking-wider">{formatToBRDate(evt.data_ini)}</span>
+                                                           <span className="w-1 h-1 rounded-full bg-white/20" />
+                                                           <span className="text-xs text-muted">{evt.uf}</span>
+                                                        </div>
+                                                     </div>
+                                                  </div>
+                                               </div>
+                                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                  {evt.brindes_alocados?.map((b, idx) => (
+                                                     <div key={idx} className="bg-surface/50 border border-white/5 rounded-xl p-4 flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-lg bg-bg/50 flex items-center justify-center text-muted border border-white/5">
+                                                           {b.tipo === 'uniforme' ? <Shirt className="w-5 h-5" /> : <Package className="w-5 h-5" />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                           <div className="flex justify-between items-start">
+                                                              <span className="text-sm font-bold text-text truncate pr-2">{b.nome || b.item}</span>
+                                                              <span className="text-xs font-black text-accent">{b.qtd} un.</span>
+                                                           </div>
+                                                        </div>
+                                                     </div>
+                                                  ))}
+                                               </div>
+                                            </div>
+                                         ))}
+                                   </div>
+                                </div>
+                             </div>
+                          ) : (
+                             <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-500 h-[800px]">
+                                <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 flex-1 flex flex-col overflow-hidden">
+                                   <div className="flex items-center justify-between mb-8">
+                                      <div>
+                                         <h3 className="text-xl font-bold text-text flex items-center gap-3 uppercase tracking-tight">
+                                            <Truck className="w-6 h-6 text-accent" /> Gestão de Parceiros
+                                         </h3>
+                                         <p className="text-xs font-mono text-muted uppercase tracking-[0.2em] mt-1">Cadeia de suprimentos e fornecedores homologados</p>
+                                      </div>
+                                      <button onClick={() => { setEditingItem(null); setModalTipo('fornecedor'); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
+                                         <Plus className="w-5 h-5" /> Adicionar Fornecedor
+                                      </button>
+                                   </div>
+                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto custom-scrollbar pr-2 pb-10">
+                                      {fornecedores.map((f, idx) => (
+                                         <div key={idx} className="bg-white/5 border border-white/5 rounded-2xl p-6 hover:bg-white/10 transition-all group relative overflow-hidden border-t-4 border-t-accent/40">
+                                            <div className="relative z-10">
+                                               <div className="flex justify-between items-start mb-6">
+                                                  <div className="w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent shadow-inner">
+                                                     <Truck className="w-7 h-7" />
+                                                  </div>
+                                                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                     <button onClick={() => { setEditingItem(f as any); setModalTipo('fornecedor'); setInventoryModalOpen(true); }} className="p-2.5 bg-bg text-muted hover:text-accent rounded-xl border border-white/5 hover:border-accent/30 transition-all"><Edit2 className="w-4 h-4"/></button>
+                                                     <button onClick={() => handleDeleteItem('fornecedores', f.id, 'fornecedor')} className="p-2.5 bg-bg text-muted hover:text-red rounded-xl border border-white/5 hover:border-red/30 transition-all"><Trash2 className="w-4 h-4"/></button>
+                                                  </div>
+                                               </div>
+                                               <h4 className="text-lg font-black text-text uppercase tracking-tight mb-6 line-clamp-1">{f.nome}</h4>
+                                               <div className="space-y-4">
+                                                  <div className="flex items-center gap-4 p-3 rounded-xl bg-bg/50 border border-white/5">
+                                                     <Mail className="w-4 h-4 text-accent/60" />
+                                                     <div className="flex flex-col min-w-0">
+                                                        <span className="text-[9px] font-black text-muted uppercase tracking-widest">E-mail</span>
+                                                        <span className="text-xs font-bold text-text truncate">{f.email || 'Não informado'}</span>
+                                                     </div>
+                                                  </div>
+                                               </div>
+                                            </div>
+                                         </div>
+                                      ))}
+                                   </div>
+                                </div>
+                             </div>
+                          )}
+                       </div>
+                    )}
 
                    {/* Modals are handled globally above */}
                    
