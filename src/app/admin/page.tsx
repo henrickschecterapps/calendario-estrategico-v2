@@ -392,18 +392,31 @@ export default function AdminDashboard() {
         const items: InventoryItem[] = [];
         
         const normalizeItem = (data: any, coll: string, defaultTipo?: string) => {
-          // Broad fallbacks for different naming conventions in the database
-          const nome = data.nome || data.item || data.brinde || data.nome_brinde || data.produto || 'Sem Nome';
-          const quantidade = Number(data.quantidade ?? data.qtd ?? data.saldo ?? data.estoque ?? 0);
-          const preco = data.preco || data.valor || data.vlr_unit || data.preco_unitario || '0,00';
+          // Robust fallbacks for inconsistent field naming in Firestore
+          const nome = data.nome || data.Nome || data.item || data.Item || data.brinde || data.Brinde || 
+                       data.nome_brinde || data.nomeBrinde || data.brinde_nome || data.produto || data.Produto || 
+                       data.label || data.title || (data.descricao ? (data.descricao.length > 30 ? data.descricao.substring(0, 30) + '...' : data.descricao) : '') || 'Sem Nome';
+          
+          const descricao = data.descricao || data.Descricao || data.desc || data.obs || data.detalhes || '';
+          
+          // Normalized numeric values
+          const rawQtd = data.quantidade ?? data.Quantidade ?? data.qtd ?? data.Qtd ?? data.saldo ?? data.estoque ?? data.stock ?? 0;
+          const quantidade = Number(rawQtd);
+          
+          const rawPreco = data.preco || data.Preco || data.valor || data.Valor || data.vlr_unit || data.vlr_unitario || 
+                           data.preco_unitario || data.custo || data.valor_unitario || data.vlrUnit || '0,00';
+          
+          const preco = typeof rawPreco === 'number' ? rawPreco.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : String(rawPreco);
+          
           const nivel = data.nivel || (data.vip ? 'VIP' : 'Qualificacao');
           
           return {
             ...data,
             id: data.id,
             _collection: coll,
-            tipo: data.tipo || defaultTipo,
+            tipo: (data.tipo || defaultTipo || 'item').toLowerCase(),
             nome,
+            descricao,
             quantidade,
             preco,
             nivel,
@@ -697,7 +710,7 @@ export default function AdminDashboard() {
       
       {/* Modals */}
       
-      <PedidoModal isOpen={pedidoModalOpen} onClose={() => setPedidoModalOpen(false)} itemToEdit={editingPedido} onSaved={fetchInventory} />
+      <PedidoModal isOpen={pedidoModalOpen} onClose={() => setPedidoModalOpen(false)} itemToEdit={editingPedido} onSaved={() => { fetchInventory(); if (modalTipo === 'fornecedor') fetchFornecedores(); }} />
       <ViagemModal isOpen={viagemModalOpen} onClose={() => setViagemModalOpen(false)} itemToEdit={editingViagem} onSaved={fetchViagens} />
       <ParticipanteModal isOpen={participanteModalOpen} onClose={() => setParticipanteModalOpen(false)} itemToEdit={editingParticipante} onSaved={fetchParticipantes} />
       <EventFormModal isOpen={eventModalOpen} onClose={() => setEventModalOpen(false)} eventToEdit={editingEvent} onSaved={fetchEvents} />
@@ -1264,7 +1277,7 @@ export default function AdminDashboard() {
                                               className="w-full pl-9 pr-4 py-2 bg-bg/50 border border-white/5 rounded-lg text-sm font-medium focus:border-accent/40 outline-none transition-all placeholder:text-muted/50" 
                                             />
                                          </div>
-                                         <button onClick={() => { setEditingItem(null); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
+                                         <button onClick={() => { setEditingItem(null); setModalTipo('estoque'); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
                                            <Plus className="w-5 h-5"/> Novo Item
                                          </button>
                                       </div>
@@ -1314,8 +1327,8 @@ export default function AdminDashboard() {
                                               </div>
                                               <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                                                  <div className="flex gap-2">
-                                                    <button onClick={() => { setEditingItem(item); setInventoryModalOpen(true); }} className="p-2 bg-surface text-muted hover:text-accent rounded-lg border border-white/5 hover:border-accent/20 transition-all"><Edit2 className="w-4 h-4"/></button>
-                                                    <button onClick={() => handleDeleteItem('estoque', item.id, 'item')} className="p-2 bg-surface text-muted hover:text-red rounded-lg border border-white/5 hover:border-red/20 transition-all"><Trash2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => { setEditingItem(item); setModalTipo(item.tipo || 'estoque'); setInventoryModalOpen(true); }} className="p-2 bg-surface text-muted hover:text-accent rounded-lg border border-white/5 hover:border-accent/20 transition-all"><Edit2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => handleDeleteItem(item._collection || 'estoque', item.id, 'item')} className="p-2 bg-surface text-muted hover:text-red rounded-lg border border-white/5 hover:border-red/20 transition-all"><Trash2 className="w-4 h-4"/></button>
                                                  </div>
                                               </div>
                                            </div>
@@ -2419,9 +2432,9 @@ export default function AdminDashboard() {
        <InventoryModal 
          isOpen={inventoryModalOpen}
          onClose={() => setInventoryModalOpen(false)}
-         tipo={editingItem?.tipo || 'estoque'}
+         tipo={modalTipo}
          itemToEdit={editingItem}
-         onSaved={fetchInventory}
+         onSaved={() => { fetchInventory(); if (modalTipo === 'fornecedor') fetchFornecedores(); }}
        />
 
        {baixaEvent && (
