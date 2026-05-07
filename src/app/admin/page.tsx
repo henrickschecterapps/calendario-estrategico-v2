@@ -1314,7 +1314,7 @@ export default function AdminDashboard() {
                                            ((i.nome || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()) || 
                                            (i.descricao || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()))
                                          ).map((item, idx) => (
-                                           <div key={idx} className="bg-surface/30 hover:bg-surface/60 backdrop-blur-xl border border-white/5 hover:border-white/15 rounded-2xl p-5 flex flex-col group transition-all duration-500 overflow-hidden h-[260px]">
+                                           <div key={idx} className="bg-surface/30 hover:bg-surface/60 backdrop-blur-xl border border-white/5 hover:border-white/15 rounded-2xl p-5 flex flex-col group transition-all duration-500 h-[290px]">
                                               <div className="flex items-start justify-between mb-4">
                                                  <div className={cn(
                                                     "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/5",
