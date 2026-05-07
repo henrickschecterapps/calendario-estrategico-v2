@@ -1308,7 +1308,7 @@ export default function AdminDashboard() {
                                          </button>
                                       </div>
 
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[600px] overflow-y-auto custom-scrollbar pr-1 pb-10 content-start">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4  pr-1 pb-10 content-start">
                                          {inventario.filter(i => 
                                            (['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')) && (Number(i.quantidade) > 0) && 
                                            ((i.nome || '').toLowerCase().includes(searchTerms.almoxarifado.toLowerCase()) || 
@@ -1362,13 +1362,13 @@ export default function AdminDashboard() {
                                       </div>
                                    </div>
                                    <div className="lg:col-span-1 flex flex-col gap-4">
-                                      <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-5 flex flex-col h-[700px]">
+                                      <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-5 flex flex-col">
                                          <div className="flex items-center justify-between mb-6">
                                             <h3 className="text-sm font-black text-text uppercase tracking-widest flex items-center gap-2">
                                                <History className="w-5 h-5 text-accent" /> Timeline de Consumo
                                             </h3>
                                          </div>
-                                         <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                                         <div className="space-y-4 pr-2">
                                             {events
                                               .filter(e => e.brindes_alocados && e.brindes_alocados.length > 0)
                                               .sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime())
@@ -1424,7 +1424,7 @@ export default function AdminDashboard() {
                                          <p className="text-sm text-muted mt-1">Visualização detalhada de itens que saíram do estoque central para eventos passados.</p>
                                       </div>
                                    </div>
-                                   <div className="grid grid-cols-1 gap-4 h-[700px] overflow-y-auto custom-scrollbar pr-2 pb-10">
+                                   <div className="grid grid-cols-1 gap-4  pr-2 pb-10">
                                       {events
                                          .filter(e => e.brindes_alocados && e.brindes_alocados.length > 0)
                                          .sort((a,b) => new Date(b.data_ini || 0).getTime() - new Date(a.data_ini || 0).getTime())
@@ -1466,7 +1466,7 @@ export default function AdminDashboard() {
                                 </div>
                              </div>
                           ) : (
-                             <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-500 h-[800px]">
+                             <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-500 ">
                                 <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 flex-1 flex flex-col overflow-hidden">
                                    <div className="flex items-center justify-between mb-8">
                                       <div>
