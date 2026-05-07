@@ -409,10 +409,19 @@ export default function AdminDashboard() {
           const rawQtd = data.quantidade ?? data.Quantidade ?? data.qtd ?? data.Qtd ?? data.saldo ?? data.estoque ?? data.stock ?? 0;
           const quantidade = Number(rawQtd);
           
-          const rawPreco = data.preco || data.Preco || data.valor || data.Valor || data.vlr_unit || data.vlr_unitario || 
-                           data.preco_unitario || data.custo || data.valor_unitario || data.vlrUnit || '0,00';
+          // Price: use nullish coalescing to avoid treating "0,00" as falsy
+          const rawPreco = data.preco ?? data.Preco ?? data.valor ?? data.Valor ?? data.vlr_unit ?? data.vlr_unitario ??
+                           data.preco_unitario ?? data.custo ?? data.valor_unitario ?? data.vlrUnit ?? "0,00";
           
-          const preco = typeof rawPreco === 'number' ? rawPreco.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : String(rawPreco);
+          // Clean price: ensure it is always a clean string, never concatenated
+          let preco: string;
+          if (typeof rawPreco === "number") {
+            preco = rawPreco.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+          } else {
+            // Remove any non-numeric chars except comma and dot, then take only the last valid price pattern
+            const cleaned = String(rawPreco).replace(/[^\d,\.]/g, "");
+            preco = cleaned || "0,00";
+          }
           
           const nivel = data.nivel || (data.vip ? 'VIP' : 'Qualificacao');
           
@@ -1344,8 +1353,8 @@ export default function AdminDashboard() {
                                               </div>
                                               <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                                                  <div className="flex gap-2">
-                                                    <button onClick={() => { setEditingItem(item); setModalTipo(item.tipo || 'estoque'); setInventoryModalOpen(true); }} className="p-2 bg-surface text-muted hover:text-accent rounded-lg border border-white/5 hover:border-accent/20 transition-all"><Edit2 className="w-4 h-4"/></button>
-                                                    <button onClick={() => handleDeleteItem(item._collection || 'estoque', item.id, 'item')} className="p-2 bg-surface text-muted hover:text-red rounded-lg border border-white/5 hover:border-red/20 transition-all"><Trash2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => { setEditingItem(item); setModalTipo(item.tipo || 'estoque'); setInventoryModalOpen(true); }} className="p-2.5 bg-accent/10 text-accent hover:bg-accent hover:text-white rounded-lg border border-accent/20 hover:border-accent transition-all shadow-sm"><Edit2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => handleDeleteItem(item._collection || 'estoque', item.id, 'item')} className="p-2.5 bg-red/10 text-red hover:bg-red hover:text-white rounded-lg border border-red/20 hover:border-red transition-all shadow-sm"><Trash2 className="w-4 h-4"/></button>
                                                  </div>
                                               </div>
                                            </div>
