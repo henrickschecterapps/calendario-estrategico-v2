@@ -101,9 +101,10 @@ export default function EventFormModal({ isOpen, onClose, eventToEdit, onSaved }
         snapUni.forEach(d => allItems.push({ ...d.data(), _collection: 'uniformes', tipo: 'uniforme' }));
         snapEst.forEach(d => allItems.push({ ...d.data(), _collection: 'estoque', tipo: 'estoque' }));
 
-        setInventoryItems(allItems);
-        if (allItems.length > 0) {
-          setNewBrinde({ id: allItems[0].id, item: allItems[0].nome, qtd: 1, _collection: allItems[0]._collection || 'inventario' });
+        const filteredItems = allItems.filter(i => Number(i.quantidade || 0) > 0);
+        setInventoryItems(filteredItems);
+        if (filteredItems.length > 0) {
+          setNewBrinde({ id: filteredItems[0].id, item: filteredItems[0].nome, qtd: 1, _collection: filteredItems[0]._collection || 'inventario' });
         }
       } catch (err) {
         console.error("Erro ao buscar inventário:", err);
