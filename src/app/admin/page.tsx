@@ -1167,37 +1167,7 @@ export default function AdminDashboard() {
                                 </div>
                               ))}
                            </div>
-                           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 flex-1">
-                              <div className="bg-surface/40 hover:bg-surface/80 backdrop-blur-xl border border-white/5 hover:border-white/10 rounded-xl p-6 flex flex-col transition-all duration-300">
-                                 <h3 className="text-sm font-medium text-text mb-4 flex items-center gap-2">
-                                    <AlertCircle className="w-5 h-5 text-red"/> Alertas Críticos de Estoque
-                                 </h3>
-                                 <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                    {inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length > 0 ? (
-                                       inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).map(item => (
-                                          <div key={item.id} className="flex items-center justify-between p-3 bg-surface border border-white/5 rounded-lg group hover:border-red/30 transition-all">
-                                             <div className="flex flex-col">
-                                                <span className="text-sm font-medium text-text tracking-tight uppercase">{item.nome}</span>
-                                                <span className="text-sm text-muted font-mono uppercase tracking-widest mt-0.5 opacity-80">REF: {item.id.substring(0,8).toUpperCase()}</span>
-                                             </div>
-                                             <div className="flex flex-col items-end">
-                                                <span className="text-xl font-semibold text-red leading-none">{item.quantidade || 0} un</span>
-                                                <div className="flex items-center gap-1.5 mt-1">
-                                                   <div className="w-1.5 h-1.5 rounded-full bg-red animate-pulse" />
-                                                   <span className="text-[8px] font-mono text-red uppercase tracking-widest">Abaixo do Limite</span>
-                                                </div>
-                                             </div>
-                                          </div>
-                                       ))
-                                    ) : (
-                                       <div className="h-full flex flex-col items-center justify-center text-muted gap-2 opacity-60">
-                                          <CheckCircle className="w-6 h-6 stroke-1" />
-                                          <p className="text-sm font-mono uppercase tracking-widest">Logística Estável</p>
-                                       </div>
-                                    )}
-                                 </div>
-                              </div>
-
+                           <div className="grid grid-cols-1 gap-8 flex-1">
                               <div className="bg-surface/40 hover:bg-surface/80 backdrop-blur-xl border border-white/5 hover:border-white/10 rounded-xl p-6 flex flex-col transition-all duration-300">
                                  <h3 className="text-sm font-medium text-text mb-4 flex items-center gap-2">
                                     <Box className="w-5 h-5 text-accent"/> Fluxo Recente de Alocações
@@ -1273,12 +1243,12 @@ export default function AdminDashboard() {
                           {inventorySubTab === 'nexus' ? (
                              <>
                                 {/* TOP STATS BAR */}
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                    {[
                                      { label: 'Valor em Estoque', val: `R$ ${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) * parseBRValue(i.preco)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: <TrendingUp className="w-5 h-5"/>, color: 'text-emerald-400' },
                                      { label: 'Itens Totais', val: `${inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '')).reduce((acc, i) => acc + (Number(i.quantidade) || 0), 0)} un.`, icon: <Box className="w-5 h-5"/>, color: 'text-accent' },
                                      { label: 'Alocados em Eventos', val: `${events.filter(e => e.status !== 'Concluído').reduce((acc, e) => acc + (e.brindes_alocados?.reduce((sum, b) => sum + b.qtd, 0) || 0), 0)} un.`, icon: <Package className="w-5 h-5"/>, color: 'text-amber-400' },
-                                     { label: 'Alertas Críticos', val: inventario.filter(i => ['estoque', 'brindes', 'uniformes', 'inventario'].includes(i._collection || '') && (i.quantidade || 0) < 10).length, icon: <AlertTriangle className="w-5 h-5"/>, color: 'text-red' },
+                                     
                                    ].map((s, i) => (
                                      <div key={i} className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-4 flex flex-col group hover:bg-surface/50 transition-all">
                                         <div className="flex justify-between items-center mb-1">
@@ -2283,7 +2253,7 @@ export default function AdminDashboard() {
                 )}
              </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   { label: 'Custo Real Total', val: financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.custo_real), 0), icon: <TrendingUp className="w-5 h-5"/>, color: 'text-accent' },
                   { label: 'Previsão de Pipe (x200)', val: financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_pipe), 0), icon: <BarChart3 className="w-5 h-5"/>, color: 'text-text' },
