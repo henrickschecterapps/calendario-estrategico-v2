@@ -1353,8 +1353,8 @@ export default function AdminDashboard() {
                                               </div>
                                               <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                                                  <div className="flex gap-2">
-                                                    <button onClick={() => { setEditingItem(item); setModalTipo(item.tipo || 'estoque'); setInventoryModalOpen(true); }} className="p-2.5 bg-accent/10 text-accent hover:bg-accent hover:text-white rounded-lg border border-accent/20 hover:border-accent transition-all shadow-sm"><Edit2 className="w-4 h-4"/></button>
-                                                    <button onClick={() => handleDeleteItem(item._collection || 'estoque', item.id, 'item')} className="p-2.5 bg-red/10 text-red hover:bg-red hover:text-white rounded-lg border border-red/20 hover:border-red transition-all shadow-sm"><Trash2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => { setEditingItem(item); setModalTipo(item.tipo || 'estoque'); setInventoryModalOpen(true); }} className="p-2 text-muted/60 hover:text-accent hover:bg-accent/10 rounded-lg transition-all duration-200"><Edit2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => handleDeleteItem(item._collection || 'estoque', item.id, 'item')} className="p-2 text-muted/60 hover:text-red hover:bg-red/10 rounded-lg transition-all duration-200"><Trash2 className="w-4 h-4"/></button>
                                                  </div>
                                               </div>
                                            </div>
