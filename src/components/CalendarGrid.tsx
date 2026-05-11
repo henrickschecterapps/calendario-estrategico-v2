@@ -30,7 +30,11 @@ export default function CalendarGrid({ eventsToRender, view, onView }: { eventsT
     return eventsToRender.map(ev => {
       const start = parseEventStringDate(ev.data_ini) || new Date();
       let end = parseEventStringDate(ev.data_fim);
-      if (!end) end = start;
+      if (!end) {
+        end = new Date(start);
+      }
+      // Garante que o evento cubra o dia inteiro da data final
+      end.setHours(23, 59, 59, 999);
 
       return {
         id: ev.id,
@@ -54,81 +58,60 @@ export default function CalendarGrid({ eventsToRender, view, onView }: { eventsT
     return {
       className: "premium-rbc-event",
       style: {
-        backgroundColor: "transparent",
-        borderRadius: "0",
-        color: bg,
-        border: "none",
-        borderLeft: `3px solid ${bg}`,
-        display: "block",
-        fontSize: "11px",
-        fontWeight: "700",
-        padding: "4px 8px",
-        textTransform: "uppercase" as any,
-        letterSpacing: "0.05em",
-        marginTop: "2px",
-        marginBottom: "2px",
-      }
+        "--event-color": bg,
+      } as React.CSSProperties
     };
   };
 
   return (
     <div className="h-full w-full bg-surface/40 backdrop-blur-3xl rounded-[32px] shadow-high-depth border border-white/20 p-4 sm:p-8 custom-rbc font-sans flex flex-col transition-all duration-500">
       <style dangerouslySetInnerHTML={{__html: `
-        /* EDITORIAL MINIMALIST CALENDAR DESIGN */
+        /* LUXURY MINIMALIST CALENDAR DESIGN */
         .custom-rbc { border: none; background: transparent; padding: 0; }
         
         /* Toolbar */
         .custom-rbc .rbc-toolbar { 
-          margin-bottom: 48px; 
+          margin-bottom: 32px; 
           font-family: var(--font-heading); 
           display: flex; 
           align-items: flex-end; 
           justify-content: space-between;
           padding: 0;
-          border-bottom: 2px solid var(--text);
-          padding-bottom: 16px;
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          padding-bottom: 24px;
         }
         .custom-rbc .rbc-toolbar-label { 
-          font-weight: 800; 
-          font-size: 2.5rem; 
+          font-weight: 700; 
+          font-size: 2rem; 
           color: var(--text); 
-          text-transform: uppercase; 
-          letter-spacing: -0.04em; 
+          text-transform: capitalize; 
+          letter-spacing: -0.02em; 
           line-height: 1;
         }
-        .custom-rbc .rbc-btn-group { display: flex; position: relative; z-index: 10; }
+        .custom-rbc .rbc-btn-group { display: flex; position: relative; z-index: 10; gap: 8px; }
         .custom-rbc .rbc-btn-group button { 
-          border-radius: 0; 
-          border: none; 
+          border-radius: 12px; 
+          border: 1px solid transparent; 
           color: var(--muted); 
-          font-weight: 600; 
+          font-weight: 500; 
           padding: 8px 16px; 
-          transition: all 0.3s ease; 
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
           background: transparent; 
-          text-transform: uppercase; 
-          font-size: 12px; 
-          letter-spacing: 0.1em; 
-          position: relative;
+          text-transform: capitalize; 
+          font-size: 13px; 
+          letter-spacing: 0.02em; 
           cursor: pointer;
-        }
-        .custom-rbc .rbc-btn-group button::after {
-          content: '';
-          position: absolute;
-          bottom: -18px;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background: transparent;
-          transition: background 0.3s ease;
         }
         .custom-rbc .rbc-btn-group button:hover { 
           color: var(--text); 
+          background: color-mix(in srgb, var(--surface) 50%, transparent);
         }
         .custom-rbc .rbc-btn-group button.rbc-active { 
           color: var(--text); 
-        }
-        .custom-rbc .rbc-btn-group button.rbc-active::after {
-          background: var(--text);
+          font-weight: 600;
+          background: var(--surface);
+          border-color: color-mix(in srgb, var(--border) 50%, transparent);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
         /* Container View */
@@ -139,50 +122,62 @@ export default function CalendarGrid({ eventsToRender, view, onView }: { eventsT
 
         /* Month View Grid */
         .custom-rbc .rbc-month-row { 
-          border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent); 
+          border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent); 
         }
         .custom-rbc .rbc-header { 
-          padding: 0 0 16px 0; 
-          font-weight: 700; 
-          font-size: 11px; 
+          padding: 16px 0; 
+          font-weight: 600; 
+          font-size: 12px; 
           color: var(--muted); 
           text-transform: uppercase; 
-          letter-spacing: 0.15em; 
+          letter-spacing: 0.05em; 
           border: none; 
-          text-align: left;
+          text-align: center;
         }
         .custom-rbc .rbc-day-bg { 
-          border-left: 1px dotted color-mix(in srgb, var(--border) 50%, transparent); 
-          transition: background-color 0.4s ease; 
+          border-left: 1px solid color-mix(in srgb, var(--border) 30%, transparent); 
+          transition: background-color 0.3s ease; 
         }
         .custom-rbc .rbc-day-bg:first-child { border-left: none; }
         .custom-rbc .rbc-day-bg:hover { 
-          background-color: color-mix(in srgb, var(--surface) 30%, transparent); 
+          background-color: color-mix(in srgb, var(--surface) 60%, transparent); 
         }
 
         /* Date Cells */
         .custom-rbc .rbc-date-cell { 
           font-weight: 500; 
-          font-size: 14px; 
-          padding: 12px; 
+          font-size: 13px; 
+          padding: 8px; 
           color: var(--text); 
-          text-align: left;
-          font-family: var(--font-heading);
+          text-align: right;
+          font-family: var(--font-sans);
+        }
+        .custom-rbc .rbc-date-cell > a {
+          display: inline-block;
+          width: 28px;
+          height: 28px;
+          line-height: 28px;
+          text-align: center;
+          border-radius: 50%;
+          transition: all 0.2s ease;
+          color: inherit;
+          text-decoration: none;
         }
         
         /* Today Highlight */
         .custom-rbc .rbc-day-bg.rbc-today { 
-          background-color: rgba(0,0,0,0.02) !important; 
+          background-color: color-mix(in srgb, var(--accent) 2%, transparent) !important; 
         }
-        .custom-rbc .rbc-now.rbc-date-cell > a,
-        .custom-rbc .rbc-now.rbc-date-cell { 
-          color: var(--accent) !important;
-          font-weight: 800;
+        .custom-rbc .rbc-now.rbc-date-cell > a { 
+          background-color: var(--accent);
+          color: #ffffff !important;
+          font-weight: 700;
+          box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 40%, transparent);
         }
 
         /* Off-range dates */
         .custom-rbc .rbc-off-range-bg { background-color: transparent; }
-        .custom-rbc .rbc-off-range .rbc-date-cell { color: var(--muted); opacity: 0.3; }
+        .custom-rbc .rbc-off-range .rbc-date-cell > a { color: var(--muted); opacity: 0.4; }
 
         /* Events */
         .custom-rbc .rbc-event { 
@@ -192,47 +187,87 @@ export default function CalendarGrid({ eventsToRender, view, onView }: { eventsT
         }
         .custom-rbc .premium-rbc-event {
           position: relative;
-          transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-          background: color-mix(in srgb, var(--surface) 80%, transparent) !important;
-        }
-        .custom-rbc .premium-rbc-event::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: currentColor;
-          opacity: 0.05;
-          z-index: -1;
-          transition: opacity 0.3s ease;
+          background-color: color-mix(in srgb, var(--event-color) 8%, transparent) !important;
+          border: 1px solid color-mix(in srgb, var(--event-color) 20%, transparent) !important;
+          border-left: 3px solid var(--event-color) !important;
+          color: var(--text) !important;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 4px 8px;
+          margin: 2px 4px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .custom-rbc .premium-rbc-event:hover { 
-          transform: translateX(4px);
+          background-color: var(--event-color) !important;
+          color: #ffffff !important;
+          border-color: var(--event-color) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px color-mix(in srgb, var(--event-color) 30%, transparent);
           z-index: 50;
-        }
-        .custom-rbc .premium-rbc-event:hover::before {
-          opacity: 0.1;
         }
 
         /* Agenda View Styling */
         .custom-rbc .rbc-agenda-table thead > tr > th { 
           background: transparent; 
           color: var(--muted); 
-          font-weight: 700; 
+          font-weight: 600; 
           padding: 16px 0; 
-          font-size: 11px; 
-          text-transform: uppercase; 
-          border-bottom: 1px solid var(--border); 
+          font-size: 12px; 
+          text-transform: capitalize; 
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); 
           border-left: none; 
           text-align: left;
         }
         .custom-rbc .rbc-agenda-table tbody > tr > td { 
           padding: 16px 0; 
-          border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent); 
+          border-top: 1px solid color-mix(in srgb, var(--border) 30%, transparent); 
           color: var(--text); 
           font-weight: 500; 
           font-size: 14px; 
         }
-        .custom-rbc .rbc-agenda-date-cell { font-weight: 700; color: var(--text); }
+        .custom-rbc .rbc-agenda-date-cell { font-weight: 600; color: var(--text); }
         .custom-rbc .rbc-agenda-time-cell { color: var(--muted); }
+        /* Popup Overlay (More Events) */
+        .custom-rbc .rbc-overlay {
+          background: color-mix(in srgb, var(--surface) 95%, transparent);
+          backdrop-filter: blur(16px);
+          border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+          border-radius: 16px;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+          padding: 12px;
+          z-index: 100;
+        }
+        .custom-rbc .rbc-overlay-header {
+          font-family: var(--font-heading);
+          font-weight: 700;
+          font-size: 14px;
+          color: var(--text);
+          padding: 4px 8px 8px 8px;
+          margin-bottom: 8px;
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+        }
+        .custom-rbc .rbc-show-more {
+          color: var(--accent);
+          font-weight: 700;
+          font-size: 11px;
+          background: transparent;
+          border: none;
+          padding: 6px 8px;
+          margin: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-radius: 6px;
+          width: calc(100% - 8px);
+          text-align: left;
+        }
+        .custom-rbc .rbc-show-more:hover {
+          color: var(--text);
+          background: color-mix(in srgb, var(--surface) 80%, transparent);
+        }
       `}} />
       <Calendar
         localizer={localizer}
@@ -248,6 +283,7 @@ export default function CalendarGrid({ eventsToRender, view, onView }: { eventsT
         onView={onView as any}
         date={currentDate}
         onNavigate={(newDate) => setCurrentDate(newDate)}
+        popup={true}
         messages={{
           today: 'Hoje',
           previous: 'Anterior',
@@ -256,7 +292,8 @@ export default function CalendarGrid({ eventsToRender, view, onView }: { eventsT
           week: 'Semana',
           day: 'Dia',
           agenda: 'Lista',
-          noEventsInRange: 'Não há eventos neste período.'
+          noEventsInRange: 'Não há eventos neste período.',
+          showMore: (count) => `+ ${count} mais`
         }}
       />
     </div>
