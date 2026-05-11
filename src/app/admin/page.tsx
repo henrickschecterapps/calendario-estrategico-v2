@@ -134,24 +134,55 @@ export default function AdminDashboard() {
       return true;
     });
     
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
+    doc.setTextColor(30, 41, 59);
     doc.text("Gestão Financeira - Tripla Eventos", 14, 20);
     
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 26);
 
     const c_real_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.custo_real), 0);
     const p_pipe_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_pipe), 0);
     const p_fech_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.previsao_fechamento), 0);
     const r_est_total = financeiroEvents.reduce((acc, e) => acc + parseBRValue(e.receita_estimada), 0);
 
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Custo Real Total: R$ ${c_real_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 14, 38);
-    doc.text(`Prev. Pipe Total: R$ ${p_pipe_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 90, 38);
-    doc.text(`Prev. Fech. Total: R$ ${p_fech_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 160, 38);
-    doc.text(`Receita Est. Total: R$ ${r_est_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 230, 38);
+    // Draw Summary Cards
+    const startY = 32;
+    const cardHeight = 18;
+    const cardWidth = 63.5;
+    const gap = 5;
+    
+    const summaries = [
+      { label: "CUSTO REAL TOTAL", value: c_real_total, valueColor: [15, 23, 42] },
+      { label: "PREVISÃO DE PIPE (x200)", value: p_pipe_total, valueColor: [15, 23, 42] },
+      { label: "PREV. DE FECHAMENTO (15%)", value: p_fech_total, valueColor: [147, 51, 234] },
+      { label: "RECEITA LÍQUIDA ESTIMADA", value: r_est_total, valueColor: [22, 163, 74] },
+    ];
+
+    summaries.forEach((sum, idx) => {
+      const x = 14 + (cardWidth + gap) * idx;
+      
+      // Draw card background
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setFillColor(248, 250, 252); // slate-50
+      doc.roundedRect(x, startY, cardWidth, cardHeight, 2, 2, 'FD');
+      
+      // Draw Label
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 116, 139); // slate-500
+      doc.text(sum.label, x + 4, startY + 6);
+      
+      // Draw Value
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      const [r, g, b] = sum.valueColor;
+      doc.setTextColor(r, g, b);
+      doc.text(`R$ ${sum.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, x + 4, startY + 14);
+    });
 
     const tableColumn = ["Evento", "Data", "UF", "Tipo", "Apurado", "Custo Real", "Pipe", "Fech.", "Receita"];
     const tableRows = financeiroEvents.map(evt => [
@@ -169,11 +200,11 @@ export default function AdminDashboard() {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 45,
+      startY: 56,
       theme: 'grid',
-      styles: { fontSize: 7, cellPadding: 2 },
-      headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [245, 247, 250] }
+      styles: { fontSize: 7, cellPadding: 3, textColor: [51, 65, 85] },
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
     });
 
     doc.save(`financeiro_tripla_${new Date().toISOString().split('T')[0]}.pdf`);
