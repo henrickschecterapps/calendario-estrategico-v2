@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { showToast } = useToast();
   const toastShown = useRef(false);
+  const [quickFilter, setQuickFilter] = useState<'none' | 'confirmados' | 'alertas' | 'staff' | 'prox7dias'>('none');
 
   // Keyboard shortcuts (legacy parity: ← → to navigate views, N for new, ESC for close)
   const VIEW_ORDER: ("timeline" | "month" | "week" | "list")[] = ["timeline", "month", "week", "list"];
@@ -133,13 +134,46 @@ export default function DashboardPage() {
       });
     }
 
+    // Apply Quick Filter
+    if (quickFilter !== 'none') {
+      list = list.filter(e => {
+        const d = parseEventStringDate(e.data_ini);
+        const isCurrentMonth = d && d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+        
+        if (quickFilter === 'confirmados') {
+          return isCurrentMonth && e.status === 'Confirmado';
+        }
+        if (quickFilter === 'alertas') {
+          if (!isCurrentMonth) return false;
+          const missingResp = !e.responsavel || String(e.responsavel).trim() === '';
+          const missingLocal = !e.local || String(e.local).trim() === '' || String(e.local).trim() === 'Local N/D';
+          return missingResp || missingLocal;
+        }
+        if (quickFilter === 'staff') {
+          if (!isCurrentMonth) return false;
+          const vagasStaff = Number(e.vagas_staff) || 0;
+          const equipeAtual = e.equipe?.length || 0;
+          return vagasStaff > equipeAtual;
+        }
+        if (quickFilter === 'prox7dias') {
+          if (!d) return false;
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const nextWeek = new Date(today);
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          return d >= today && d <= nextWeek;
+        }
+        return true;
+      });
+    }
+
     // Sort by Date Asc
     return list.sort((a, b) => {
       const da = parseEventStringDate(a.data_ini) || new Date(2030,0);
       const db = parseEventStringDate(b.data_ini) || new Date(2030,0);
       return da.getTime() - db.getTime();
     });
-  }, [events, selectedResps, selectedTipos, selectedStatus, selectedFormatos, showPastEvents, searchQuery, filterStartDate, filterEndDate]);
+  }, [events, selectedResps, selectedTipos, selectedStatus, selectedFormatos, showPastEvents, searchQuery, filterStartDate, filterEndDate, quickFilter]);
 
   // Group events by month for the Timeline view
   const groupedEvents = useMemo(() => {
@@ -273,12 +307,15 @@ export default function DashboardPage() {
             {/* KPI Strip — compact horizontal cards */}
             {!eventsLoading && activeView === "timeline" && (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                <div className="bg-surface px-4 py-3 rounded-xl border border-border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-accent/5 text-accent rounded-xl flex items-center justify-center group-hover:bg-accent group-hover:text-white transition-all shrink-0">
+                <div 
+                  onClick={() => setQuickFilter(prev => prev === 'confirmados' ? 'none' : 'confirmados')}
+                  className={cn("px-4 py-3 rounded-xl border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all cursor-pointer", quickFilter === 'confirmados' ? 'bg-accent/5 border-accent ring-2 ring-accent/20' : 'bg-surface border-border')}
+                >
+                  <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0", quickFilter === 'confirmados' ? 'bg-accent text-white' : 'bg-accent/5 text-accent group-hover:bg-accent group-hover:text-white')}>
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Confirmados</p>
+                    <p className={cn("text-[9px] font-black uppercase tracking-widest leading-none", quickFilter === 'confirmados' ? 'text-accent' : 'text-muted')}>Confirmados no Mês</p>
                     <p className="text-xl font-black text-text leading-none mt-0.5">
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
@@ -288,12 +325,15 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-red/5 px-4 py-3 rounded-xl border border-red/10 shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-red/10 text-red rounded-xl flex items-center justify-center group-hover:bg-red group-hover:text-white transition-all shrink-0">
+                <div 
+                  onClick={() => setQuickFilter(prev => prev === 'alertas' ? 'none' : 'alertas')}
+                  className={cn("px-4 py-3 rounded-xl border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all cursor-pointer", quickFilter === 'alertas' ? 'bg-red/10 border-red ring-2 ring-red/20' : 'bg-red/5 border-red/10')}
+                >
+                  <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0", quickFilter === 'alertas' ? 'bg-red text-white' : 'bg-red/10 text-red group-hover:bg-red group-hover:text-white')}>
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-black text-red uppercase tracking-widest leading-none">Alertas Mês</p>
+                    <p className="text-[9px] font-black text-red uppercase tracking-widest leading-none">Ação Necessária</p>
                     <p className="text-xl font-black text-red leading-none mt-0.5">
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
@@ -306,12 +346,15 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-amber/5 px-4 py-3 rounded-xl border border-amber/10 shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-amber/10 text-amber rounded-xl flex items-center justify-center group-hover:bg-amber group-hover:text-white transition-all shrink-0">
+                <div 
+                  onClick={() => setQuickFilter(prev => prev === 'staff' ? 'none' : 'staff')}
+                  className={cn("px-4 py-3 rounded-xl border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all cursor-pointer", quickFilter === 'staff' ? 'bg-amber/10 border-amber ring-2 ring-amber/20' : 'bg-amber/5 border-amber/10')}
+                >
+                  <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0", quickFilter === 'staff' ? 'bg-amber text-white' : 'bg-amber/10 text-amber group-hover:bg-amber group-hover:text-white')}>
                     <UserX className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-black text-amber uppercase tracking-widest leading-none">Staff Pendente</p>
+                    <p className="text-[9px] font-black text-amber uppercase tracking-widest leading-none">Equipe Incompleta</p>
                     <p className="text-xl font-black text-amber leading-none mt-0.5">
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
@@ -324,12 +367,15 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-surface px-4 py-3 rounded-xl border border-border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-blue-500/5 text-blue-500 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all shrink-0">
+                <div 
+                  onClick={() => setQuickFilter(prev => prev === 'prox7dias' ? 'none' : 'prox7dias')}
+                  className={cn("px-4 py-3 rounded-xl border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all cursor-pointer", quickFilter === 'prox7dias' ? 'bg-blue-500/10 border-blue-500 ring-2 ring-blue-500/20' : 'bg-surface border-border')}
+                >
+                  <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0", quickFilter === 'prox7dias' ? 'bg-blue-500 text-white' : 'bg-blue-500/5 text-blue-500 group-hover:bg-blue-500 group-hover:text-white')}>
                     <Clock className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Próx. 7 Dias</p>
+                    <p className={cn("text-[9px] font-black uppercase tracking-widest leading-none", quickFilter === 'prox7dias' ? 'text-blue-500' : 'text-muted')}>Próxima Semana</p>
                     <p className="text-xl font-black text-text leading-none mt-0.5">
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
