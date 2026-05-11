@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/store/useAuth";
 import { useEvents } from "@/store/useEvents";
-import { Loader2, Calendar as CalendarGridIcon, Users, Package, Activity, Filter, X } from "lucide-react";
+import { Loader2, Calendar as CalendarGridIcon, Users, Package, Activity, Filter, X, CheckCircle2, AlertTriangle, UserX, Clock } from "lucide-react";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import SidebarFilters from "@/components/SidebarFilters";
@@ -275,68 +275,71 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 <div className="bg-surface px-4 py-3 rounded-xl border border-border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
                   <div className="w-9 h-9 bg-accent/5 text-accent rounded-xl flex items-center justify-center group-hover:bg-accent group-hover:text-white transition-all shrink-0">
-                    <CalendarGridIcon className="w-4 h-4" />
+                    <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Eventos/Mês</p>
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Confirmados</p>
                     <p className="text-xl font-black text-text leading-none mt-0.5">
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
-                        return d && d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+                        return d && d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && e.status === 'Confirmado';
+                      }).length}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-red/5 px-4 py-3 rounded-xl border border-red/10 shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
+                  <div className="w-9 h-9 bg-red/10 text-red rounded-xl flex items-center justify-center group-hover:bg-red group-hover:text-white transition-all shrink-0">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-black text-red uppercase tracking-widest leading-none">Alertas Mês</p>
+                    <p className="text-xl font-black text-red leading-none mt-0.5">
+                      {events.filter(e => {
+                        const d = parseEventStringDate(e.data_ini);
+                        if (!(d && d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear())) return false;
+                        const missingResp = !e.responsavel || e.responsavel.trim() === '';
+                        const missingLocal = !e.local || e.local.trim() === '' || e.local.trim() === 'Local N/D';
+                        return missingResp || missingLocal;
+                      }).length}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-amber/5 px-4 py-3 rounded-xl border border-amber/10 shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
+                  <div className="w-9 h-9 bg-amber/10 text-amber rounded-xl flex items-center justify-center group-hover:bg-amber group-hover:text-white transition-all shrink-0">
+                    <UserX className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-black text-amber uppercase tracking-widest leading-none">Staff Pendente</p>
+                    <p className="text-xl font-black text-amber leading-none mt-0.5">
+                      {events.filter(e => {
+                        const d = parseEventStringDate(e.data_ini);
+                        if (!(d && d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear())) return false;
+                        const vagasStaff = Number(e.vagas_staff) || 0;
+                        const equipeAtual = e.equipe?.length || 0;
+                        return vagasStaff > equipeAtual;
                       }).length}
                     </p>
                   </div>
                 </div>
 
                 <div className="bg-surface px-4 py-3 rounded-xl border border-border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-green/5 text-green rounded-xl flex items-center justify-center group-hover:bg-green group-hover:text-white transition-all shrink-0">
-                    <Users className="w-4 h-4" />
+                  <div className="w-9 h-9 bg-blue-500/5 text-blue-500 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all shrink-0">
+                    <Clock className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Total Staff</p>
-                    <p className="text-xl font-black text-text leading-none mt-0.5">
-                      {events.reduce((acc, e) => {
-                        const d = parseEventStringDate(e.data_ini);
-                        if (d && d >= new Date()) {
-                          return acc + (Number(e.vagas_staff) || 0) + (Number(e.vagas_cliente) || 0) + (Number(e.vagas_vip) || 0);
-                        }
-                        return acc;
-                      }, 0)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-surface px-4 py-3 rounded-xl border border-border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-amber/5 text-amber rounded-xl flex items-center justify-center group-hover:bg-amber group-hover:text-white transition-all shrink-0">
-                    <Package className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Logística</p>
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Próx. 7 Dias</p>
                     <p className="text-xl font-black text-text leading-none mt-0.5">
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
-                        return d && d >= new Date() && (!e.arquivos || e.arquivos.length === 0);
-                      }).length}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-surface px-4 py-3 rounded-xl border border-border shadow-sm flex items-center gap-3 group hover:shadow-md transition-all">
-                  <div className="w-9 h-9 bg-purple/5 text-purple rounded-xl flex items-center justify-center group-hover:bg-purple group-hover:text-white transition-all shrink-0">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">Em Campo</p>
-                    <p className="text-xl font-black text-text leading-none mt-0.5">
-                      {events.reduce((acc, e) => {
-                        const d = parseEventStringDate(e.data_ini);
-                        const d2 = parseEventStringDate(e.data_fim) || d;
+                        if (!d) return false;
                         const today = new Date();
-                        if (d && d2 && today >= d && today <= d2) {
-                          return acc + (e.equipe?.length || 0);
-                        }
-                        return acc;
-                      }, 0)}
+                        today.setHours(0,0,0,0);
+                        const nextWeek = new Date(today);
+                        nextWeek.setDate(nextWeek.getDate() + 7);
+                        return d >= today && d <= nextWeek;
+                      }).length}
                     </p>
                   </div>
                 </div>
