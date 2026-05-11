@@ -93,7 +93,7 @@ import { useTheme } from "@/store/useTheme";
 import { cn, parseBRValue } from "@/lib/utils";
 import { genericConverter } from "@/lib/firebaseUtils";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { 
   InventoryItem, 
   Fornecedor, 
@@ -117,7 +117,22 @@ export default function AdminDashboard() {
 
   const exportFinanceiroPDF = () => {
     const doc = new jsPDF('landscape');
-    const financeiroEvents = events.filter(e => e.tipo !== 'Feriado');
+    const financeiroEvents = events.filter(e => {
+      if (e.tipo === 'Feriado') return false;
+      if (financeiroSearch) {
+        const searchLower = financeiroSearch.toLowerCase();
+        const matchesSearch = e.evento?.toLowerCase().includes(searchLower) || 
+                            e.uf?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+      if (financeiroType !== 'all' && e.tipo_financeiro !== financeiroType) return false;
+      if (financeiroStatus !== 'all') {
+        const isFinished = !!e.apuracao_finalizada;
+        if (financeiroStatus === 'finished' && !isFinished) return false;
+        if (financeiroStatus === 'pending' && isFinished) return false;
+      }
+      return true;
+    });
     
     doc.setFontSize(18);
     doc.text("Gestão Financeira - Tripla Eventos", 14, 20);
@@ -151,7 +166,7 @@ export default function AdminDashboard() {
       `R$ ${parseBRValue(evt.receita_estimada).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 45,
@@ -844,9 +859,6 @@ export default function AdminDashboard() {
             ))}
           </div>
           
-          <button onClick={() => window.print()} className="text-sm font-medium text-muted hover:text-text flex items-center gap-1.5 transition-colors print:hidden">
-             <Download className="w-5 h-5"/> Exportar PDF
-          </button>
         </div>
       </div>
 
