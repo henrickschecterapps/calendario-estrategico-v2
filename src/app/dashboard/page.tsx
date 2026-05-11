@@ -298,8 +298,8 @@ export default function DashboardPage() {
                       {events.filter(e => {
                         const d = parseEventStringDate(e.data_ini);
                         if (!(d && d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear())) return false;
-                        const missingResp = !e.responsavel || e.responsavel.trim() === '';
-                        const missingLocal = !e.local || e.local.trim() === '' || e.local.trim() === 'Local N/D';
+                        const missingResp = !e.responsavel || String(e.responsavel).trim() === '';
+                        const missingLocal = !e.local || String(e.local).trim() === '' || String(e.local).trim() === 'Local N/D';
                         return missingResp || missingLocal;
                       }).length}
                     </p>
