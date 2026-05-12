@@ -1305,7 +1305,7 @@ export default function AdminDashboard() {
 
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
                                    <div className="lg:col-span-2 space-y-4">
-                                      <div className="flex items-center justify-between bg-surface/30 p-3 rounded-xl border border-white/5">
+                                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-surface/30 p-3 rounded-xl border border-white/5">
                                          <div className="relative flex-1 max-w-md">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/40" />
                                             <input 
@@ -1316,7 +1316,7 @@ export default function AdminDashboard() {
                                               className="w-full pl-9 pr-4 py-2 bg-bg/50 border border-white/5 rounded-lg text-sm font-medium focus:border-accent/40 outline-none transition-all placeholder:text-muted/50" 
                                             />
                                          </div>
-                                         <button onClick={() => { setEditingItem(null); setModalTipo('estoque'); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
+                                         <button onClick={() => { setEditingItem(null); setModalTipo('estoque'); setInventoryModalOpen(true); }} className="w-full sm:w-auto justify-center bg-accent text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20 shrink-0">
                                            <Plus className="w-5 h-5"/> Novo Item
                                          </button>
                                       </div>
@@ -1481,14 +1481,14 @@ export default function AdminDashboard() {
                           ) : (
                              <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-500 ">
                                 <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 flex-1 flex flex-col overflow-hidden">
-                                   <div className="flex items-center justify-between mb-8">
+                                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
                                       <div>
                                          <h3 className="text-xl font-bold text-text flex items-center gap-3 uppercase tracking-tight">
                                             <Truck className="w-6 h-6 text-accent" /> Gestão de Parceiros
                                          </h3>
                                          <p className="text-xs font-mono text-muted uppercase tracking-[0.2em] mt-1">Cadeia de suprimentos e fornecedores homologados</p>
                                       </div>
-                                      <button onClick={() => { setEditingItem(null); setModalTipo('fornecedor'); setInventoryModalOpen(true); }} className="bg-accent text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20">
+                                      <button onClick={() => { setEditingItem(null); setModalTipo('fornecedor'); setInventoryModalOpen(true); }} className="w-full sm:w-auto justify-center bg-accent text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-accent/80 transition-all flex items-center gap-2 shadow-lg shadow-accent/20 shrink-0">
                                          <Plus className="w-5 h-5" /> Adicionar Fornecedor
                                       </button>
                                    </div>
@@ -1593,8 +1593,8 @@ export default function AdminDashboard() {
                    {['Fornecedores', 'Viagens', 'Participantes'].includes(opTab) && (
                       <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl overflow-hidden flex flex-col flex-1 min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
                          
-                         <div className="p-4 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 bg-surface/50">
-                            <div className="relative w-full max-w-md">
+                         <div className="p-4 border-b border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-surface/50">
+                            <div className="relative w-full sm:max-w-md shrink-0">
                               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted/40" />
                               <input 
                                 type="text" 
@@ -1608,8 +1608,8 @@ export default function AdminDashboard() {
                                if (opTab === 'Fornecedores') { setEditingItem(null); setModalTipo('fornecedor'); setInventoryModalOpen(true); }
                                else if (opTab === 'Viagens') { setEditingViagem(null); setViagemModalOpen(true); }
                                else if (opTab === 'Participantes') { setEditingParticipante(null); setParticipanteModalOpen(true); }
-                            }} className="bg-accent hover:bg-accent/80 text-white font-medium px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-                              <Plus className="w-5 h-5"/> Novo {opTab.slice(0, -1)}
+                            }} className="w-full sm:w-auto justify-center bg-accent hover:bg-accent/80 text-white font-medium px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-sm whitespace-nowrap shrink-0">
+                              <Plus className="w-5 h-5"/> Novo {opTab === 'Fornecedores' ? 'Fornecedor' : opTab === 'Viagens' ? 'Viagem' : 'Participante'}
                             </button>
                          </div>
 
@@ -1758,12 +1758,12 @@ export default function AdminDashboard() {
         {/* ======================= EVENTOS TAB ======================= */}
         {activeTab === 'Eventos' && (
           <div className="w-full px-6 lg:px-10 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between items-stretch sm:items-end gap-4 sm:gap-6 mb-6">
                <div>
                   <h2 className="text-2xl font-medium text-text flex items-center gap-3 tracking-tight"><Calendar className="w-6 h-6 text-accent"/> Registro de Eventos</h2>
                   <p className="text-sm font-mono text-muted mt-2 tracking-widest uppercase">Auditória, Edição Massiva e Controle de Status em Tempo Real</p>
                </div>
-               <button onClick={() => {setEditingEvent(null); setEventModalOpen(true);}} className="bg-accent text-white font-medium px-5 py-2 rounded-lg hover:bg-accent/80 transition-all flex items-center gap-2 text-sm">
+               <button onClick={() => {setEditingEvent(null); setEventModalOpen(true);}} className="w-full sm:w-auto justify-center bg-accent text-white font-medium px-5 py-2 rounded-lg hover:bg-accent/80 transition-all flex items-center gap-2 text-sm shrink-0">
                  <Plus className="w-5 h-5"/> Criar Evento
                </button>
             </div>
@@ -1818,14 +1818,14 @@ export default function AdminDashboard() {
         {/* ======================= USUARIOS TAB ======================= */}
         {activeTab === 'Usuarios' && (
           <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                <div>
                   <h2 className="text-2xl font-medium text-text flex items-center gap-3 tracking-tight"><Users className="w-6 h-6 text-accent"/> Gestão de Usuários</h2>
                   <p className="text-sm font-mono text-muted mt-2 tracking-widest uppercase">Controle de acessos, aprovação e permissões do sistema</p>
                </div>
                <button 
                  onClick={() => { setAddUserModalOpen(true); setAddUserError(""); }}
-                 className="bg-accent text-white font-medium px-5 py-2 rounded-lg hover:bg-accent/80 transition-all flex items-center gap-2 text-sm shrink-0"
+                 className="w-full sm:w-auto justify-center bg-accent text-white font-medium px-5 py-2 rounded-lg hover:bg-accent/80 transition-all flex items-center gap-2 text-sm shrink-0"
                >
                  <Plus className="w-5 h-5"/> Adicionar Usuário
                </button>
