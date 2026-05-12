@@ -1593,8 +1593,8 @@ export default function AdminDashboard() {
                    {['Fornecedores', 'Viagens', 'Participantes'].includes(opTab) && (
                       <div className="bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl overflow-hidden flex flex-col flex-1 min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
                          
-                         <div className="p-4 border-b border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-surface/50">
-                            <div className="relative w-full sm:max-w-md shrink-0">
+                         <div className="p-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4 bg-surface/50">
+                            <div className="relative flex-1 min-w-[250px] max-w-md">
                               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted/40" />
                               <input 
                                 type="text" 
@@ -1608,7 +1608,7 @@ export default function AdminDashboard() {
                                if (opTab === 'Fornecedores') { setEditingItem(null); setModalTipo('fornecedor'); setInventoryModalOpen(true); }
                                else if (opTab === 'Viagens') { setEditingViagem(null); setViagemModalOpen(true); }
                                else if (opTab === 'Participantes') { setEditingParticipante(null); setParticipanteModalOpen(true); }
-                            }} className="w-full sm:w-auto justify-center bg-accent hover:bg-accent/80 text-white font-medium px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-sm whitespace-nowrap shrink-0">
+                            }} className="w-full sm:w-auto justify-center bg-accent hover:bg-accent/80 text-white font-medium px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-sm whitespace-nowrap">
                               <Plus className="w-5 h-5"/> Novo {opTab === 'Fornecedores' ? 'Fornecedor' : opTab === 'Viagens' ? 'Viagem' : 'Participante'}
                             </button>
                          </div>
